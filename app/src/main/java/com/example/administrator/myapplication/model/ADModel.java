@@ -3,9 +3,17 @@ package com.example.administrator.myapplication.model;
 public class ADModel {
     private String ID;
     private int play_type;
-    private String image_url;
+    private int image_url;
     private String video_url;
     private int duration;
+
+    public ADModel(String ID, int play_type, int image_url, String video_url, int duration) {
+        this.ID = ID;
+        this.play_type = play_type;
+        this.image_url = image_url;
+        this.video_url = video_url;
+        this.duration = duration;
+    }
 
     public String getID() {
         return ID;
@@ -23,11 +31,11 @@ public class ADModel {
         this.play_type = play_type;
     }
 
-    public String getImage_url() {
+    public int getImage_url() {
         return image_url;
     }
 
-    public void setImage_url(String image_url) {
+    public void setImage_url(int image_url) {
         this.image_url = image_url;
     }
 
