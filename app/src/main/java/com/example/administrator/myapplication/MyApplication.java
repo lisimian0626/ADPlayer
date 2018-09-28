@@ -5,6 +5,7 @@ import android.app.Application;
 
 
 import com.example.administrator.myapplication.exception.UnCeHandler;
+import com.tencent.bugly.crashreport.CrashReport;
 
 import java.util.ArrayList;
 
@@ -14,6 +15,7 @@ public class MyApplication extends Application{
     @Override
     public void onCreate() {
         super.onCreate();
+        CrashReport.initCrashReport(getApplicationContext(), "a42cc2465b", false);
     }
     public void init() {
         //设置该CrashHandler为程序的默认处理器

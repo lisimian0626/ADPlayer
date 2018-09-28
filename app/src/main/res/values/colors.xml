@@ -3,4 +3,44 @@
     <color name="colorPrimary">#3F51B5</color>
     <color name="colorPrimaryDark">#303F9F</color>
     <color name="colorAccent">#FF4081</color>
+
+    <color name="common_bg">#F2F2F2</color>
+
+    <!--按钮颜色-->
+    <color name="color_home_first">#4582C9</color>
+    <color name="color_home_second">#45C4C9</color>
+
+    <!--文字颜色-->
+    <color name="color_month_income">#F9C538</color>
+    <color name="color_room_count">#2DA993</color>
+
+    <color name="color_big_title">#333</color>
+    <color name="color_main_title">#666</color>
+    <color name="color_sub_title">#999</color>
+    <color name="color_btn_unenable">#ccc</color>
+    <color name="color_btn_enable">#4582c9</color>
+    <color name="color_exit">#E46D6D</color>
+    <color name="color_list_title">#82B9F9</color>
+    <color name="color_list_item1">#F2F2F2</color>
+    <color name="color_list_item2">#FAFAFA</color>
+    <color name="color_service_money">#49bd74</color>
+
+    <color name="image_overlay">#20000000</color>
+    <color name="image_overlay2">#80000000</color>
+    <color name="green_70">#AD43c117</color>
+    <color name="white_70">#ADFFFFFF</color>
+    <color name="white_90">#E5FFFFFF</color>
+    <color name="bar_grey_90">#dd393a3e</color>
+    <color name="black_3">#333333</color>
+
+
+    <color name="colorProgressBg">#E6E6E6</color>
+
+    <color name="bg_toast">#99000000</color>
+    <color name="color_recan">#2DCFAF</color>
+    <color name="qrcode_cancel">#f2f2f2</color>
+    <color name="btn_delete_cur">#f25d5d</color>
+
+    <color name="home_ad_thismonth_income">#F6224A</color>
+    <color name="home_ad_today_income">#4582C9</color>
 </resources>
