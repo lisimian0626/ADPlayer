@@ -120,11 +120,10 @@ public class MainActivity extends AppCompatActivity implements MediaPlayer.OnCom
     public void onCompletion(MediaPlayer mediaPlayer) {
         if(current_play<list_Ad.size()){
             current_play++;
-            play(list_Ad.get(current_play));
         }else{
             current_play=0;
-            play(list_Ad.get(current_play));
         }
+        play(list_Ad.get(current_play));
     }
 
     @Override
