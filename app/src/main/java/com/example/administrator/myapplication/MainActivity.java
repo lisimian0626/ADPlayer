@@ -15,6 +15,8 @@ import com.example.administrator.myapplication.evenbus.PlayerEvent;
 import com.example.administrator.myapplication.model.ADModel;
 import com.example.administrator.myapplication.utils.AssetsUtils;
 import com.example.administrator.myapplication.utils.L;
+import com.liulishuo.filedownloader.BaseDownloadTask;
+import com.liulishuo.filedownloader.FileDownloader;
 
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
@@ -109,7 +111,9 @@ public class MainActivity extends AppCompatActivity implements MediaPlayer.OnCom
     }
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void onPlayerEvent(PlayerEvent event) {
-
+//        BaseDownloadTask task = FileDownloader.getImpl().create(mSong.getMp3FilePath())
+//                .setPath(Constant.File.getMusicDir()+ mSong.getMusicFilename());
+//        mTaskList.add(task);
     }
 
     @Override
