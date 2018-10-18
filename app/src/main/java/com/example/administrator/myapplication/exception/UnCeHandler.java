@@ -1,10 +1,17 @@
 package com.example.administrator.myapplication.exception;
 
+import android.annotation.SuppressLint;
+import android.app.AlarmManager;
+import android.app.PendingIntent;
+import android.content.Context;
+import android.content.Intent;
 import android.os.Environment;
 import android.os.Looper;
 import android.widget.Toast;
 
+import com.example.administrator.myapplication.MainActivity;
 import com.example.administrator.myapplication.MyApplication;
+import com.example.administrator.myapplication.utils.L;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
@@ -33,12 +40,20 @@ public class UnCeHandler implements Thread.UncaughtExceptionHandler {
 
     @Override
     public void uncaughtException(Thread thread, Throwable ex) {
-        ex.printStackTrace();
-        saveCrashInfo2File(ex);
-//        Toast.makeText(application.getApplicationContext(), "很抱歉,程序出现异常,即将退出.", Toast.LENGTH_SHORT).show();
-//        application.finishActivity();
-        android.os.Process.killProcess(android.os.Process.myPid());
-        System.exit(1);
+        if(!handleException(ex) && mDefaultHandler != null){
+            mDefaultHandler.uncaughtException(thread, ex);
+        }else{
+            try {
+                Thread.sleep(100);
+            }catch (InterruptedException e){
+                L.e(TAG, "error : "+e.toString());
+            }
+            Intent intent = new Intent(application.getApplicationContext(), MainActivity.class);
+            @SuppressLint("WrongConstant") PendingIntent restartIntent = PendingIntent.getActivity(application.getApplicationContext(), 0, intent,Intent.FLAG_ACTIVITY_NEW_TASK);
+            AlarmManager mgr = (AlarmManager)application.getSystemService(Context.ALARM_SERVICE);
+            mgr.set(AlarmManager.RTC, System.currentTimeMillis(),restartIntent);
+            application.finishActivity();
+        }
     }
 
     /**
@@ -61,7 +76,7 @@ public class UnCeHandler implements Thread.UncaughtExceptionHandler {
                 Looper.loop();
             }
         }.start();
-        saveCrashInfo2File(ex);
+//        saveCrashInfo2File(ex);
         return true;
     }
 

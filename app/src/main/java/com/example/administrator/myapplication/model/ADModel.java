@@ -4,10 +4,10 @@ public class ADModel {
     private String ID;
     private int play_type;
     private int image_url;
-    private String video_url;
+    private int video_url;
     private int duration;
 
-    public ADModel(String ID, int play_type, int image_url, String video_url, int duration) {
+    public ADModel(String ID, int play_type, int image_url, int video_url, int duration) {
         this.ID = ID;
         this.play_type = play_type;
         this.image_url = image_url;
@@ -39,11 +39,11 @@ public class ADModel {
         this.image_url = image_url;
     }
 
-    public String getVideo_url() {
+    public int getVideo_url() {
         return video_url;
     }
 
-    public void setVideo_url(String video_url) {
+    public void setVideo_url(int video_url) {
         this.video_url = video_url;
     }
 

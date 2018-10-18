@@ -38,7 +38,7 @@ dependencies {
     api 'org.greenrobot:eventbus:3.0.0'
     api 'com.tencent.bugly:crashreport_upgrade:latest.release'
     // 指定tinker依赖版本（注：应用升级1.3.5版本起，不再内置tinker）
-    api 'com.tencent.tinker:tinker-android-lib:1.9.6'
+//    api 'com.tencent.tinker:tinker-android-lib:1.9.6'
     api 'com.tencent.bugly:nativecrashreport:latest.release' //其中latest.release指代最新Bugly NDK版本号，也可以指定明确的版本号，例如3.0
     api 'com.liulishuo.filedownloader:library:1.4.2'
 }

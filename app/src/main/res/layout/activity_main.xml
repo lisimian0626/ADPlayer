@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout
+<RelativeLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
@@ -7,19 +7,25 @@
     android:orientation="vertical"
     tools:context=".MainActivity">
     <LinearLayout
+        android:id="@+id/lin_bottom"
         android:layout_width="match_parent"
-        android:layout_height="50dp">
+        android:layout_height="50dp"
+        android:layout_alignParentBottom="true"
+        >
         <TextView
+            android:id="@+id/tv_tips"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="当前播放....."
+            android:text="28sp"
+            android:layout_gravity="center_vertical"
             />
     </LinearLayout>
     <LinearLayout
         android:id="@+id/lin_mode1"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:visibility="gone"
+        android:orientation="vertical"
+        android:layout_above="@+id/iv_tips"
         >
         <SurfaceView
             android:id="@+id/main_surf"
@@ -32,18 +38,31 @@
         android:id="@+id/lin_mode2"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:visibility="gone"
         android:orientation="vertical"
+        android:layout_above="@+id/iv_tips"
         >
-        <ImageView
-            android:id="@+id/iv_pic"
-            android:layout_width="match_parent"
-            android:layout_height="400dp" />
+
         <SurfaceView
             android:id="@+id/main_surf2"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="4"
             android:visibility="visible"
             />
+        <ImageView
+            android:id="@+id/iv_pic"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:scaleType="fitXY"
+            />
     </LinearLayout>
-</LinearLayout>
+    <ImageView
+        android:id="@+id/iv_tips"
+        android:layout_above="@id/lin_bottom"
+        android:layout_width="match_parent"
+        android:layout_height="400dp"
+        android:background="@drawable/lan02"
+        android:scaleType="fitXY"
+        />
+</RelativeLayout>
