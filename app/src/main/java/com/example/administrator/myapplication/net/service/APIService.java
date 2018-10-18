@@ -1,4 +1,4 @@
-package com.example.administrator.myapplication.http.service;
+package com.example.administrator.myapplication.net.service;
 
 import okhttp3.ResponseBody;
 import retrofit2.http.GET;

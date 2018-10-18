@@ -1,4 +1,4 @@
-package com.example.administrator.myapplication.http;
+package com.example.administrator.myapplication.net;
 
 public class HttpResult<T> {
     private int resultCode;

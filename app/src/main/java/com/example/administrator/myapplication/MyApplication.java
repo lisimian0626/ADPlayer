@@ -15,12 +15,13 @@ public class MyApplication extends Application{
     @Override
     public void onCreate() {
         super.onCreate();
-        CrashReport.initCrashReport(getApplicationContext(), "a42cc2465b", false);
+
     }
     public void init() {
         //设置该CrashHandler为程序的默认处理器
         UnCeHandler catchExcep = new UnCeHandler(this);
         Thread.setDefaultUncaughtExceptionHandler(catchExcep);
+        CrashReport.initCrashReport(getApplicationContext(), "a42cc2465b", false);
     }
     /**
      * Activity关闭时，删除Activity列表中的Activity对象

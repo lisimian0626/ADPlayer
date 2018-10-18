@@ -3,9 +3,8 @@ package com.example.administrator.myapplication.constract;
 
 import com.example.administrator.myapplication.base.BasePresenter;
 import com.example.administrator.myapplication.base.BaseView;
-import com.example.administrator.myapplication.http.HttpResult;
+import com.example.administrator.myapplication.net.HttpResult;
 import com.example.administrator.myapplication.model.ADModel;
-import com.google.gson.JsonObject;
 
 import rx.Observable;
 

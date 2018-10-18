@@ -140,7 +140,6 @@ public class MainActivity extends AppCompatActivity implements MediaPlayer.OnCom
         }else{
             current_play=0;
         }
-        Log.d(TAG,"play:"+list_Ad.get(current_play).getID());
         play(list_Ad.get(current_play));
     }
 

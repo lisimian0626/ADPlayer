@@ -1,4 +1,4 @@
-package com.example.administrator.myapplication.http.download;
+package com.example.administrator.myapplication.net.download;
 
 import java.io.IOException;
 

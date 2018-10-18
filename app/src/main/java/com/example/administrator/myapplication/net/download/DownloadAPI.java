@@ -1,10 +1,10 @@
-package com.example.administrator.myapplication.http.download;
+package com.example.administrator.myapplication.net.download;
 
 import android.support.annotation.NonNull;
 import android.util.Log;
 
 
-import com.example.administrator.myapplication.http.service.APIService;
+import com.example.administrator.myapplication.net.service.APIService;
 import com.example.administrator.myapplication.utils.FileUtils;
 
 import java.io.File;
