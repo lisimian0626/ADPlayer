@@ -1,17 +1,19 @@
 package com.example.administrator.myapplication.model;
 
+import android.net.Uri;
+
 public class ADModel {
     private String ID;
     private int play_type;
     private int image_url;
-    private int video_url;
+    private Uri video_url;
     private int duration;
 
-    public ADModel(String ID, int play_type, int image_url, int video_url, int duration) {
+    public ADModel(String ID, int play_type, int image_url, Uri uri, int duration) {
         this.ID = ID;
         this.play_type = play_type;
         this.image_url = image_url;
-        this.video_url = video_url;
+        this.video_url = uri;
         this.duration = duration;
     }
 
@@ -39,11 +41,11 @@ public class ADModel {
         this.image_url = image_url;
     }
 
-    public int getVideo_url() {
+    public Uri getVideo_url() {
         return video_url;
     }
 
-    public void setVideo_url(int video_url) {
+    public void setVideo_url(Uri video_url) {
         this.video_url = video_url;
     }
 
