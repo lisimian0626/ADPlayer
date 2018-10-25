@@ -11,6 +11,7 @@ import android.view.WindowManager;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.MediaController;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import com.example.administrator.myapplication.evenbus.BusEvent;
@@ -18,6 +19,7 @@ import com.example.administrator.myapplication.evenbus.PlayerEvent;
 import com.example.administrator.myapplication.model.ADModel;
 import com.example.administrator.myapplication.utils.AssetsUtils;
 import com.example.administrator.myapplication.utils.L;
+import com.example.administrator.myapplication.utils.MultiScreenUtils;
 import com.example.administrator.myapplication.utils.UIUtils;
 import com.liulishuo.filedownloader.BaseDownloadTask;
 import com.liulishuo.filedownloader.FileDownloader;
@@ -31,13 +33,14 @@ import java.util.Arrays;
 import java.util.List;
 
 
-public class MainActivity extends AppCompatActivity implements MediaPlayer.OnCompletionListener,MediaPlayer.OnErrorListener{
+public class MainActivity extends AppCompatActivity implements MediaPlayer.OnPreparedListener,MediaPlayer.OnCompletionListener,MediaPlayer.OnErrorListener{
     private final String TAG="MainActivity";
     MediaPlayer mediaPlayer;
     List<ADModel> list_Ad;
-    LinearLayout lin_mode1,lin_mode2;
+    LinearLayout lin_mode2;
     ImageView iv_pic;
     SurfaceView main_surf1,main_surf2;
+//    private RelativeLayout layout_main;
     int current_play=0;
     private TextView tv_tips;
     @Override
@@ -48,20 +51,28 @@ public class MainActivity extends AppCompatActivity implements MediaPlayer.OnCom
                 WindowManager.LayoutParams.FLAG_FULLSCREEN);
         hideNavigationBar();
         setContentView(R.layout.activity_main);
+//        layout_main=findViewById(R.id.layout_main);
+//        MultiScreenUtils.resizeViews(layout_main);
         tv_tips=findViewById(R.id.tv_tips);
-        lin_mode1=findViewById(R.id.lin_mode1);
+//        lin_mode1=findViewById(R.id.lin_mode1);
         lin_mode2=findViewById(R.id.lin_mode2);
         iv_pic=findViewById(R.id.iv_pic);
-        main_surf1=findViewById(R.id.main_surf);
+//        main_surf1=findViewById(R.id.main_surf);
         main_surf2=findViewById(R.id.main_surf2);
         MyApplication application= (MyApplication) getApplication();
         application.init();
         list_Ad= Arrays.asList(
-                new ADModel("1",2,R.drawable.lan01,R.raw.lan_video01,0),
-//                new ADModel("2",2,R.drawable.lan02,R.raw.lan_video02,0),
-                new ADModel("3",2,R.drawable.lan03,R.raw.lan_video03,0),
-                new ADModel("4",2,R.drawable.lan04,R.raw.lan_video04,0),
-                new ADModel("5",2,R.drawable.lan05,R.raw.lan_video05,0)
+                new ADModel("1",2,R.drawable.pic01,R.raw.vedio01,0),
+                new ADModel("2",2,R.drawable.pic02,R.raw.vedio02,0),
+                new ADModel("3",2,R.drawable.pic03,R.raw.vedio03,0),
+                new ADModel("4",2,R.drawable.pic04,R.raw.vedio04,0),
+                new ADModel("5",2,R.drawable.pic05,R.raw.vedio05,0),
+                new ADModel("6",2,R.drawable.pic06,R.raw.vedio06,0),
+                new ADModel("7",2,R.drawable.pic07,R.raw.vedio07,0),
+                new ADModel("8",2,R.drawable.pic08,R.raw.vedio08,0),
+                new ADModel("9",2,R.drawable.pic09,R.raw.vedio09,0),
+                new ADModel("10",2,R.drawable.pic10,R.raw.vedio10,0)
+
         );
         initPlayer();
     }
@@ -70,8 +81,8 @@ public class MainActivity extends AppCompatActivity implements MediaPlayer.OnCom
             return;
         }
         tv_tips.setText("当前播放："+"广告"+adModel.getID()+"|"+"模板"+adModel.getPlay_type());
-        lin_mode1.setVisibility(adModel.getPlay_type()==1? View.VISIBLE:View.GONE);
-        lin_mode2.setVisibility(adModel.getPlay_type()==2?View.VISIBLE:View.GONE);
+//        lin_mode1.setVisibility(adModel.getPlay_type()==1? View.VISIBLE:View.GONE);
+//        lin_mode2.setVisibility(adModel.getPlay_type()==2?View.VISIBLE:View.GONE);
         iv_pic.setVisibility(adModel.getPlay_type()==2?View.VISIBLE:View.GONE);
         switch (adModel.getPlay_type()){
             case 1:
@@ -99,8 +110,14 @@ public class MainActivity extends AppCompatActivity implements MediaPlayer.OnCom
                 mediaPlayer.setDisplay(main_surf2.getHolder());
                 mediaPlayer.setOnCompletionListener(this);
                 mediaPlayer.setOnErrorListener(this);
-//                    mediaPlayer.prepare();
                 mediaPlayer.start();
+//                try {
+//                    mediaPlayer.prepare();
+//                } catch (IOException e) {
+//                    e.printStackTrace();
+//                }
+//                mediaPlayer.setOnPreparedListener(this);
+
                 break;
         }
 
@@ -181,5 +198,11 @@ public class MainActivity extends AppCompatActivity implements MediaPlayer.OnCom
         } catch (Exception e) {
             // TODO: handle exception
         }
+    }
+
+    @Override
+    public void onPrepared(MediaPlayer mediaPlayer) {
+        if(mediaPlayer!=null)
+        mediaPlayer.start();
     }
 }
