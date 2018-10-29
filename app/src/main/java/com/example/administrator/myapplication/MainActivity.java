@@ -138,6 +138,7 @@ public class MainActivity extends AppCompatActivity implements MediaPlayer.OnPre
     private void initPlayer() {
         if (mediaPlayer != null) {
             mediaPlayer.stop();
+
             mediaPlayer = null;
         }
         mediaPlayer = new MediaPlayer();
@@ -225,10 +226,10 @@ public class MainActivity extends AppCompatActivity implements MediaPlayer.OnPre
     }
 
     @Override
-    public void onPrepared(MediaPlayer mediaPlayer) {
-        if(mediaPlayer!=null)
-        mediaPlayer.seekTo(currentPosition);
-        mediaPlayer.start();
+    public void onPrepared(MediaPlayer mp) {
+        if(mp!=null)
+//            mediaPlayer.seekTo(currentPosition);
+        mp.start();
     }
     private class SurfaceCallback implements SurfaceHolder.Callback {
         public void surfaceChanged(SurfaceHolder holder, int format, int width, int height) {
@@ -245,7 +246,7 @@ public class MainActivity extends AppCompatActivity implements MediaPlayer.OnPre
 //            curVolume = audioManager.getStreamVolume(AudioManager.STREAM_MUSIC);// 获取当前音量
             // 创建SurfaceHolder的时候，如果存在上次播放的位置，则按照上次播放位置进行播放
 //            play("/sdcard/basketball.mp4");
-            play(list_Ad.get(current_play));
+            initPlayer();
         }
 
         /**
@@ -254,8 +255,10 @@ public class MainActivity extends AppCompatActivity implements MediaPlayer.OnPre
         public void surfaceDestroyed(SurfaceHolder holder) {
             // 隐藏view的时候销毁SurfaceHolder的时候记录当前的播放位置并停止播放
             if (mediaPlayer != null && mediaPlayer.isPlaying()) {
-                currentPosition = mediaPlayer.getCurrentPosition();
+//                currentPosition = mediaPlayer.getCurrentPosition();
                 mediaPlayer.stop();
+                mediaPlayer.release();
+                mediaPlayer=null;
             }
         }
     }
