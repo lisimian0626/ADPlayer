@@ -7,20 +7,19 @@
     android:layout_height="match_parent"
     android:orientation="vertical"
     tools:context=".MainActivity">
-    <!--<LinearLayout-->
-        <!--android:id="@+id/lin_mode1"-->
-        <!--android:layout_width="match_parent"-->
-        <!--android:layout_height="match_parent"-->
-        <!--android:orientation="vertical"-->
-        <!--android:layout_below="@id/lin_tips"-->
-        <!--android:layout_above="@+id/view_bottom"-->
-        <!--&gt;-->
-        <!--<SurfaceView-->
-            <!--android:id="@+id/main_surf"-->
-            <!--android:layout_width="match_parent"-->
-            <!--android:layout_height="match_parent"-->
-            <!--/>-->
-    <!--</LinearLayout>-->
+    <LinearLayout
+        android:id="@+id/lin_mode1"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1225"
+        android:orientation="vertical"
+        >
+        <SurfaceView
+            android:id="@+id/main_surf"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            />
+    </LinearLayout>
     <LinearLayout
         android:id="@+id/lin_mode2"
         android:layout_width="match_parent"
