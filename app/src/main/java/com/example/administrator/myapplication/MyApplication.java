@@ -91,16 +91,16 @@ public class MyApplication extends Application implements Application.ActivityLi
         activityCount--;
         if (0 == activityCount) {
             isForeground = false;
-//            try {
-//                Thread.sleep(1000);
-//            } catch (InterruptedException e) {
-//                L.e(Tag, "error : " + e.toString());
-//            }
-//            Intent intent = new Intent(this, MainActivity.class);
-//            intent.addCategory(Intent.CATEGORY_LAUNCHER);
-//            intent.setAction(Intent.ACTION_MAIN);
-//            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_RESET_TASK_IF_NEEDED);
-//            startActivity(intent);
+            try {
+                Thread.sleep(5000);
+            } catch (InterruptedException e) {
+                L.e(Tag, "error : " + e.toString());
+            }
+            Intent intent = new Intent(this, MainActivity.class);
+            intent.addCategory(Intent.CATEGORY_LAUNCHER);
+            intent.setAction(Intent.ACTION_MAIN);
+            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_RESET_TASK_IF_NEEDED);
+            startActivity(intent);
         }
     }
 

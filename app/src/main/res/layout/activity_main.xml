@@ -7,11 +7,19 @@
     android:layout_height="match_parent"
     android:orientation="vertical"
     tools:context=".MainActivity">
+    <TextView
+        android:id="@+id/tv_tips"
+        android:layout_width="wrap_content"
+        android:layout_height="0dp"
+        android:layout_weight="60"
+        android:text="28sp"
+        android:layout_gravity="center_vertical"
+        />
     <LinearLayout
         android:id="@+id/lin_mode1"
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_weight="1225"
+        android:layout_weight="1165"
         android:orientation="vertical"
         >
         <SurfaceView
@@ -24,17 +32,9 @@
         android:id="@+id/lin_mode2"
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_weight="1225"
+        android:layout_weight="1165"
         android:orientation="vertical"
         >
-        <TextView
-            android:id="@+id/tv_tips"
-            android:layout_width="wrap_content"
-            android:layout_height="0dp"
-            android:layout_weight="60"
-            android:text="28sp"
-            android:layout_gravity="center_vertical"
-            />
         <SurfaceView
             android:id="@+id/main_surf2"
             android:layout_width="match_parent"

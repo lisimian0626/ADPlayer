@@ -11,6 +11,7 @@ import android.support.annotation.MainThread;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.KeyEvent;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.view.View;
@@ -54,37 +55,7 @@ public class MainActivity extends BaseActivity implements MediaPlayer.OnPrepared
     private TextView tv_tips;
     private boolean isSurfaceCreated = false;        //surface是否已经创建好
     private int curIndex = 0;
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-
-        setContentView(R.layout.activity_main);
-//        layout_main=findViewById(R.id.layout_main);
-//        MultiScreenUtils.resizeViews(layout_main);
-        tv_tips = findViewById(R.id.tv_tips);
-        lin_mode1 = findViewById(R.id.lin_mode1);
-        lin_mode2 = findViewById(R.id.lin_mode2);
-        iv_pic = findViewById(R.id.iv_pic);
-        main_surf1=findViewById(R.id.main_surf);
-        main_surf2 = findViewById(R.id.main_surf2);
-        MyApplication application = (MyApplication) getApplication();
-        application.init();
-        list_Ad = Arrays.asList(
-                new ADModel("1", 2, R.drawable.pic01, Uri.parse("android.resource://" + getPackageName() + "/" + R.raw.vedio01), 0),
-                new ADModel("2", 1, R.drawable.pic02, Uri.parse("android.resource://" + getPackageName() + "/" + R.raw.vedio02), 0),
-                new ADModel("3", 2, R.drawable.pic03, Uri.parse("android.resource://" + getPackageName() + "/" + R.raw.vedio03), 0),
-                new ADModel("4", 2, R.drawable.pic04, Uri.parse("android.resource://" + getPackageName() + "/" + R.raw.vedio04), 0),
-                new ADModel("5", 1, R.drawable.pic05, Uri.parse("android.resource://" + getPackageName() + "/" + R.raw.vedio05), 0),
-                new ADModel("6", 2, R.drawable.pic06, Uri.parse("android.resource://" + getPackageName() + "/" + R.raw.vedio06), 0),
-                new ADModel("7", 1, R.drawable.pic07, Uri.parse("android.resource://" + getPackageName() + "/" + R.raw.vedio07), 0),
-                new ADModel("8", 2, R.drawable.pic08, Uri.parse("android.resource://" + getPackageName() + "/" + R.raw.vedio08), 0),
-                new ADModel("9", 1, R.drawable.pic09, Uri.parse("android.resource://" + getPackageName() + "/" + R.raw.vedio09), 0),
-                new ADModel("10", 2, R.drawable.pic10, Uri.parse("android.resource://" + getPackageName() + "/" + R.raw.vedio10), 0)
-
-        );
-        initPlayer();
-
-    }
+    private String curID = "";
 
     private void play(ADModel adModel) {
         if (adModel == null) {
@@ -96,29 +67,31 @@ public class MainActivity extends BaseActivity implements MediaPlayer.OnPrepared
         main_surf1.setVisibility(adModel.getPlay_type() == 1 ? View.VISIBLE : View.GONE);
         main_surf2.setVisibility(adModel.getPlay_type() == 2 ? View.VISIBLE : View.GONE);
         iv_pic.setVisibility(adModel.getPlay_type() == 2 ? View.VISIBLE : View.GONE);
+        if (curID.equals(adModel.getID())) {
+          if(curIndex>0){
+              mediaPlayer.seekTo(curIndex);
+              curIndex=0;
+          }
+          mediaPlayer.start();
+        } else {
+            try {
+                mediaPlayer.reset();
+                mediaPlayer.setDataSource(this, adModel.getVideo_url());
+                mediaPlayer.prepare();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
         switch (adModel.getPlay_type()) {
             case 1:
-                try {
-                    mediaPlayer.reset();
-                    mediaPlayer.setDataSource(this, adModel.getVideo_url());
-                    mediaPlayer.setDisplay(main_surf1.getHolder());
-                    mediaPlayer.prepareAsync();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
+                mediaPlayer.setDisplay(main_surf1.getHolder());
                 break;
             case 2:
                 iv_pic.setImageResource(adModel.getImage_url());
-                try {
-                    mediaPlayer.reset();
-                    mediaPlayer.setDataSource(this, adModel.getVideo_url());
-                    mediaPlayer.setDisplay(main_surf2.getHolder());
-                    mediaPlayer.prepareAsync();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
+                mediaPlayer.setDisplay(main_surf2.getHolder());
                 break;
         }
+        curID = adModel.getID();
     }
 
     private void initPlayer() {
@@ -155,11 +128,10 @@ public class MainActivity extends BaseActivity implements MediaPlayer.OnPrepared
      * 暂停
      */
     private void Pause() {
-        if (mediaPlayer != null && mediaPlayer.isPlaying()) {
-            curIndex = mediaPlayer.getCurrentPosition();
-            mediaPlayer.pause();
-        }
-
+//        if (mediaPlayer != null && mediaPlayer.isPlaying()) {
+//            curIndex = mediaPlayer.getCurrentPosition();
+//            mediaPlayer.pause();
+//        }
     }
 
     @Subscribe(threadMode = ThreadMode.MAIN)
@@ -171,7 +143,7 @@ public class MainActivity extends BaseActivity implements MediaPlayer.OnPrepared
 
     @Override
     public void onCompletion(MediaPlayer mediaPlayer) {
-        L.d(TAG,  "onCompletion");
+        L.d(TAG, "onCompletion");
         if (current_play < list_Ad.size() - 1) {
             current_play++;
         } else {
@@ -205,23 +177,27 @@ public class MainActivity extends BaseActivity implements MediaPlayer.OnPrepared
     }
 
     @Override
-    public void onBackPressed() {
-//        super.onBackPressed();
-//        finish();
+    public boolean onKeyDown(int keyCode, KeyEvent event) {
+        if (keyCode == KeyEvent.KEYCODE_BACK) {
+            moveTaskToBack(true);
+            return true;
+        }
+        return super.onKeyDown(keyCode, event);
     }
 
     @Override
     protected void onResume() {
         super.onResume();
-
-         play();
+//        hideToobar();
+        play();
     }
 
     private void play() {
         new Handler().postDelayed(new Runnable() {
             @Override
             public void run() {
-                play(list_Ad.get(current_play));
+                if (isSurfaceCreated)
+                    play(list_Ad.get(current_play));
             }
         }, 1000);
     }
@@ -229,7 +205,7 @@ public class MainActivity extends BaseActivity implements MediaPlayer.OnPrepared
     @Override
     protected void onPause() {
         super.onPause();
-        Pause();
+//        Pause();
 //        Intent intent = new Intent(this, MainActivity.class);
 //        intent.addCategory(Intent.CATEGORY_LAUNCHER);
 //        intent.setAction(Intent.ACTION_MAIN);
@@ -243,17 +219,58 @@ public class MainActivity extends BaseActivity implements MediaPlayer.OnPrepared
         return false;
     }
 
-    private void hideSystemUI(boolean hide) {
-        UIUtils.hideNavibar(getApplicationContext(), hide);
-    }
-
-
-
     @Override
     public void onPrepared(MediaPlayer mp) {
-        L.d(TAG,  "duration:"+mp.getDuration());
-        mp.seekTo(curIndex);
-        mp.start();
+        mediaPlayer.start();
+    }
+
+    @Override
+    public int getContentView() {
+        return R.layout.activity_main;
+    }
+
+    @Override
+    public void initViews() {
+        tv_tips = findViewById(R.id.tv_tips);
+        lin_mode1 = findViewById(R.id.lin_mode1);
+        lin_mode2 = findViewById(R.id.lin_mode2);
+        iv_pic = findViewById(R.id.iv_pic);
+        main_surf1 = findViewById(R.id.main_surf);
+        main_surf2 = findViewById(R.id.main_surf2);
+    }
+
+    @Override
+    public void setListener() {
+        MyApplication application = (MyApplication) getApplication();
+        application.init();
+    }
+
+    @Override
+    public void initData() {
+        list_Ad = Arrays.asList(
+                new ADModel("1", 2, R.drawable.pic01, Uri.parse("android.resource://" + getPackageName() + "/" + R.raw.vedio01), 0),
+                new ADModel("2", 2, R.drawable.pic02, Uri.parse("android.resource://" + getPackageName() + "/" + R.raw.vedio02), 0),
+                new ADModel("3", 2, R.drawable.pic03, Uri.parse("android.resource://" + getPackageName() + "/" + R.raw.vedio03), 0),
+                new ADModel("4", 2, R.drawable.pic04, Uri.parse("android.resource://" + getPackageName() + "/" + R.raw.vedio04), 0),
+                new ADModel("5", 2, R.drawable.pic05, Uri.parse("android.resource://" + getPackageName() + "/" + R.raw.vedio05), 0),
+                new ADModel("6", 2, R.drawable.pic06, Uri.parse("android.resource://" + getPackageName() + "/" + R.raw.vedio06), 0),
+                new ADModel("7", 2, R.drawable.pic07, Uri.parse("android.resource://" + getPackageName() + "/" + R.raw.vedio07), 0),
+                new ADModel("8", 2, R.drawable.pic08, Uri.parse("android.resource://" + getPackageName() + "/" + R.raw.vedio08), 0),
+                new ADModel("9", 2, R.drawable.pic09, Uri.parse("android.resource://" + getPackageName() + "/" + R.raw.vedio09), 0),
+                new ADModel("10", 2, R.drawable.pic10, Uri.parse("android.resource://" + getPackageName() + "/" + R.raw.vedio10), 0)
+
+        );
+        initPlayer();
+    }
+
+    @Override
+    public void loadDataWhenOnResume() {
+
+    }
+
+    @Override
+    public void cancelLoadingRequest() {
+
     }
 
     private class SurfaceCallback implements SurfaceHolder.Callback {
@@ -278,23 +295,8 @@ public class MainActivity extends BaseActivity implements MediaPlayer.OnPrepared
             isSurfaceCreated = false;
             if (mediaPlayer.isPlaying()) {
                 curIndex = mediaPlayer.getCurrentPosition();
-                mediaPlayer.stop();
+                mediaPlayer.pause();
             }
         }
     }
-
-    //需要申请GETTask权限
-    private boolean isApplicationBroughtToBackground() {
-        ActivityManager am = (ActivityManager) getSystemService(this.ACTIVITY_SERVICE);
-        List<ActivityManager.RunningTaskInfo> tasks = am.getRunningTasks(1);
-        if (!tasks.isEmpty()) {
-            ComponentName topActivity = tasks.get(0).topActivity;
-            if (!topActivity.getPackageName().equals(getPackageName())) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-
 }
