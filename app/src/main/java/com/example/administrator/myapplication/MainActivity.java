@@ -24,6 +24,7 @@ import android.widget.TextView;
 
 import com.example.administrator.myapplication.base.BaseActivity;
 import com.example.administrator.myapplication.evenbus.BusEvent;
+import com.example.administrator.myapplication.evenbus.EventBusId;
 import com.example.administrator.myapplication.evenbus.PlayerEvent;
 import com.example.administrator.myapplication.model.ADModel;
 import com.example.administrator.myapplication.utils.AssetsUtils;
@@ -58,6 +59,7 @@ public class MainActivity extends BaseActivity implements MediaPlayer.OnPrepared
     private String curID = "";
 
     private void play(ADModel adModel) {
+        syncTime=1;
         if (adModel == null) {
             return;
         }
@@ -128,10 +130,9 @@ public class MainActivity extends BaseActivity implements MediaPlayer.OnPrepared
      * 暂停
      */
     private void Pause() {
-//        if (mediaPlayer != null && mediaPlayer.isPlaying()) {
-//            curIndex = mediaPlayer.getCurrentPosition();
-//            mediaPlayer.pause();
-//        }
+        if (mediaPlayer != null && mediaPlayer.isPlaying()) {
+            mediaPlayer.pause();
+        }
     }
 
     @Subscribe(threadMode = ThreadMode.MAIN)
@@ -139,6 +140,21 @@ public class MainActivity extends BaseActivity implements MediaPlayer.OnPrepared
 //        BaseDownloadTask task = FileDownloader.getImpl().create(mSong.getMp3FilePath())
 //                .setPath(Constant.File.getMusicDir()+ mSong.getMusicFilename());
 //        mTaskList.add(task);
+    }
+
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    public void onMainEvent(BusEvent event) {
+        switch (event.id){
+            case EventBusId.syncTime:
+                L.d("收到同步");
+//                Pause();
+                if(mediaPlayer.isPlaying()){
+                    mediaPlayer.stop();
+                }
+                curIndex=0;
+                play(list_Ad.get(0));
+                break;
+        }
     }
 
     @Override
@@ -190,6 +206,7 @@ public class MainActivity extends BaseActivity implements MediaPlayer.OnPrepared
         super.onResume();
 //        hideToobar();
         play();
+
     }
 
     private void play() {

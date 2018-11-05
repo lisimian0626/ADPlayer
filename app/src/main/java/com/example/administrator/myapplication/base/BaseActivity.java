@@ -10,17 +10,31 @@ import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
 
+import com.example.administrator.myapplication.evenbus.BusEvent;
+import com.example.administrator.myapplication.evenbus.EventBusHelper;
+import com.example.administrator.myapplication.evenbus.EventBusId;
+import com.example.administrator.myapplication.utils.L;
+
+import java.util.Calendar;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
+
 public abstract class BaseActivity extends Activity {
+    private String Tag="BaseActivity";
+    private ScheduledExecutorService mScheduledExecutorService;
+    public static int syncTime=5;
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         if (getContentView() != View.NO_ID) {
             setContentView(getContentView());
         }
+        EventBusHelper.register(this);
         initViews();
         setupToolbar();
         setListener();
         initData();
+        startScreenTimer();
     }
 
     protected void hideToobar() {
@@ -78,5 +92,44 @@ public abstract class BaseActivity extends Activity {
 
     public void setupToolbar() {
 
+    }
+       private void startScreenTimer() {
+        if (mScheduledExecutorService != null && !mScheduledExecutorService.isShutdown())
+            return;
+        mScheduledExecutorService = java.util.concurrent.Executors.newScheduledThreadPool(1);
+        scheduleAtFixedRate(mScheduledExecutorService);
+
+    }
+
+    private void stopScreenTimer() {
+        if (mScheduledExecutorService != null) {
+            mScheduledExecutorService.shutdownNow();
+            mScheduledExecutorService = null;
+        }
+    }
+
+    private void scheduleAtFixedRate(ScheduledExecutorService service) {
+        service.scheduleAtFixedRate(new Runnable() {
+            @Override
+            public void run() {
+                long time=System.currentTimeMillis();
+                Calendar mCalendar=Calendar.getInstance();
+                mCalendar.setTimeInMillis(time);
+                int mMinute=mCalendar.get(Calendar.MINUTE);
+                int mSecond=mCalendar.get(Calendar.SECOND);
+                L.d("minute:"+mMinute+"   second:"+mSecond);
+                if(mMinute!=0&&mMinute%syncTime==0&&mSecond==0){
+                    L.d("同步");
+                    EventBusHelper.sendEvent(BusEvent.getEvent(EventBusId.syncTime));
+                }
+            }
+        }, 10, 1, TimeUnit.SECONDS);
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        stopScreenTimer();
+        EventBusHelper.unregister(this);
     }
 }
