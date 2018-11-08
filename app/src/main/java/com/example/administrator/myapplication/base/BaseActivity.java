@@ -23,6 +23,7 @@ public abstract class BaseActivity extends Activity {
     private String Tag="BaseActivity";
     private ScheduledExecutorService mScheduledExecutorService;
     public static int syncTime=5;
+    public static int nextTime=20;
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -121,9 +122,13 @@ public abstract class BaseActivity extends Activity {
                 if(mMinute!=0&&mMinute%syncTime==0&&mSecond==0){
                     L.d("同步");
                     EventBusHelper.sendEvent(BusEvent.getEvent(EventBusId.syncTime));
+                    return;
+                }else if(mSecond!=0&&mSecond%nextTime==0){
+                    L.d("next");
+                    EventBusHelper.sendEvent(BusEvent.getEvent(EventBusId.nextTime));
                 }
             }
-        }, 10, 1, TimeUnit.SECONDS);
+        }, 1, 1, TimeUnit.SECONDS);
     }
 
     @Override

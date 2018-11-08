@@ -48,9 +48,9 @@ public class MainActivity extends BaseActivity implements MediaPlayer.OnPrepared
     private final String TAG = "MainActivity";
     MediaPlayer mediaPlayer;
     List<ADModel> list_Ad;
-    LinearLayout lin_mode1, lin_mode2;
+    LinearLayout lin_mode1;
     ImageView iv_pic;
-    SurfaceView main_surf1, main_surf2;
+    SurfaceView main_surf1;
     //    private RelativeLayout layout_main;
     int current_play = 0;
     private TextView tv_tips;
@@ -59,15 +59,11 @@ public class MainActivity extends BaseActivity implements MediaPlayer.OnPrepared
     private String curID = "";
 
     private void play(ADModel adModel) {
-        syncTime=1;
+        syncTime=2;nextTime=15;
         if (adModel == null) {
             return;
         }
         tv_tips.setText("当前播放：" + "广告" + adModel.getID() + "|" + "模板" + adModel.getPlay_type());
-        lin_mode1.setVisibility(adModel.getPlay_type() == 1 ? View.VISIBLE : View.GONE);
-        lin_mode2.setVisibility(adModel.getPlay_type() == 2 ? View.VISIBLE : View.GONE);
-        main_surf1.setVisibility(adModel.getPlay_type() == 1 ? View.VISIBLE : View.GONE);
-        main_surf2.setVisibility(adModel.getPlay_type() == 2 ? View.VISIBLE : View.GONE);
         iv_pic.setVisibility(adModel.getPlay_type() == 2 ? View.VISIBLE : View.GONE);
         if (curID.equals(adModel.getID())) {
           if(curIndex>0){
@@ -86,11 +82,11 @@ public class MainActivity extends BaseActivity implements MediaPlayer.OnPrepared
         }
         switch (adModel.getPlay_type()) {
             case 1:
-                mediaPlayer.setDisplay(main_surf1.getHolder());
                 break;
             case 2:
+
                 iv_pic.setImageResource(adModel.getImage_url());
-                mediaPlayer.setDisplay(main_surf2.getHolder());
+                mediaPlayer.setDisplay(main_surf1.getHolder());
                 break;
         }
         curID = adModel.getID();
@@ -114,8 +110,6 @@ public class MainActivity extends BaseActivity implements MediaPlayer.OnPrepared
 //        main_surf2.getHolder().setType(SurfaceHolder.SURFACE_TYPE_PUSH_BUFFERS);
         main_surf1.getHolder().setKeepScreenOn(true);
         main_surf1.getHolder().addCallback(new SurfaceCallback());
-        main_surf2.getHolder().setKeepScreenOn(true);
-        main_surf2.getHolder().addCallback(new SurfaceCallback());
     }
 
     private void stopPlayer() {
@@ -249,11 +243,9 @@ public class MainActivity extends BaseActivity implements MediaPlayer.OnPrepared
     @Override
     public void initViews() {
         tv_tips = findViewById(R.id.tv_tips);
-        lin_mode1 = findViewById(R.id.lin_mode1);
-        lin_mode2 = findViewById(R.id.lin_mode2);
+        lin_mode1 = findViewById(R.id.lin_mode);
         iv_pic = findViewById(R.id.iv_pic);
         main_surf1 = findViewById(R.id.main_surf);
-        main_surf2 = findViewById(R.id.main_surf2);
     }
 
     @Override
@@ -265,7 +257,7 @@ public class MainActivity extends BaseActivity implements MediaPlayer.OnPrepared
     @Override
     public void initData() {
         list_Ad = Arrays.asList(
-                new ADModel("1", 2, R.drawable.pic01, Uri.parse("android.resource://" + getPackageName() + "/" + R.raw.vedio01), 0),
+                new ADModel("1", 1, R.drawable.pic01, Uri.parse("android.resource://" + getPackageName() + "/" + R.raw.vedio01), 0),
                 new ADModel("2", 2, R.drawable.pic02, Uri.parse("android.resource://" + getPackageName() + "/" + R.raw.vedio02), 0),
                 new ADModel("3", 2, R.drawable.pic03, Uri.parse("android.resource://" + getPackageName() + "/" + R.raw.vedio03), 0),
                 new ADModel("4", 2, R.drawable.pic04, Uri.parse("android.resource://" + getPackageName() + "/" + R.raw.vedio04), 0),
