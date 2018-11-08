@@ -57,14 +57,18 @@ public class MainActivity extends BaseActivity implements MediaPlayer.OnPrepared
     private boolean isSurfaceCreated = false;        //surface是否已经创建好
     private int curIndex = 0;
     private String curID = "";
-
+    private boolean isPlaying=false;
     private void play(ADModel adModel) {
+        stopPlayer();
         syncTime=2;nextTime=15;
         if (adModel == null) {
             return;
         }
         tv_tips.setText("当前播放：" + "广告" + adModel.getID() + "|" + "模板" + adModel.getPlay_type());
         iv_pic.setVisibility(adModel.getPlay_type() == 2 ? View.VISIBLE : View.GONE);
+        if(mediaPlayer==null){
+           CreateMediaPlayer();
+        }
         if (curID.equals(adModel.getID())) {
           if(curIndex>0){
               mediaPlayer.seekTo(curIndex);
@@ -73,9 +77,7 @@ public class MainActivity extends BaseActivity implements MediaPlayer.OnPrepared
           mediaPlayer.start();
         } else {
             try {
-                mediaPlayer.reset();
-                mediaPlayer.setDataSource(this, adModel.getVideo_url());
-                mediaPlayer.prepare();
+                open(adModel.getVideo_url());
             } catch (IOException e) {
                 e.printStackTrace();
             }
@@ -97,13 +99,16 @@ public class MainActivity extends BaseActivity implements MediaPlayer.OnPrepared
             mediaPlayer.stop();
             mediaPlayer = null;
         }
+        CreateMediaPlayer();
+        // 把输送给surfaceView的视频画面，直接显示到屏幕上,不要维持它自身的缓冲区
+        CreateSurfaceView();
+    }
+
+    private void CreateMediaPlayer() {
         mediaPlayer = new MediaPlayer();
-        mediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC); //设置视频流类型
         mediaPlayer.setOnCompletionListener(this);
         mediaPlayer.setOnErrorListener(this);
         mediaPlayer.setOnPreparedListener(this);
-        // 把输送给surfaceView的视频画面，直接显示到屏幕上,不要维持它自身的缓冲区
-        CreateSurfaceView();
     }
 
     private void CreateSurfaceView() {
@@ -113,8 +118,8 @@ public class MainActivity extends BaseActivity implements MediaPlayer.OnPrepared
     }
 
     private void stopPlayer() {
+        isPlaying=false;
         if (mediaPlayer != null) {
-            mediaPlayer.stop();
             mediaPlayer.release();
             mediaPlayer = null;
         }
@@ -308,4 +313,16 @@ public class MainActivity extends BaseActivity implements MediaPlayer.OnPrepared
             }
         }
     }
+    private void open(Uri uri) throws IOException {
+//        File file = new File(uri.toString());
+//        if (file != null) {//存在本地文件
+//            L.d("open local file:" + file.getAbsolutePath());
+            mediaPlayer.setDataSource(MainActivity.this,uri);
+            mediaPlayer.setDisplay(main_surf1.getHolder());
+            mediaPlayer.prepare();
+            isPlaying = true;
+//        }else{
+//            L.d("文件不存在");
+//        }
+        }
 }
