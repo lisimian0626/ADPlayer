@@ -57,24 +57,26 @@ public class MainActivity extends BaseActivity implements MediaPlayer.OnPrepared
     private boolean isSurfaceCreated = false;        //surface是否已经创建好
     private int curIndex = 0;
     private String curID = "";
-    private boolean isPlaying=false;
+    private boolean isPlaying = false;
+
     private void play(ADModel adModel) {
         stopPlayer();
-        syncTime=2;nextTime=15;
+        syncTime = 2;
+        nextTime = 15;
         if (adModel == null) {
             return;
         }
         tv_tips.setText("当前播放：" + "广告" + adModel.getID() + "|" + "模板" + adModel.getPlay_type());
         iv_pic.setVisibility(adModel.getPlay_type() == 2 ? View.VISIBLE : View.GONE);
-        if(mediaPlayer==null){
-           CreateMediaPlayer();
+        if (mediaPlayer == null) {
+            CreateMediaPlayer();
         }
         if (curID.equals(adModel.getID())) {
-          if(curIndex>0){
-              mediaPlayer.seekTo(curIndex);
-              curIndex=0;
-          }
-          mediaPlayer.start();
+            if (curIndex > 0) {
+                mediaPlayer.seekTo(curIndex);
+                curIndex = 0;
+            }
+            mediaPlayer.start();
         } else {
             try {
                 open(adModel.getVideo_url());
@@ -118,7 +120,7 @@ public class MainActivity extends BaseActivity implements MediaPlayer.OnPrepared
     }
 
     private void stopPlayer() {
-        isPlaying=false;
+        isPlaying = false;
         if (mediaPlayer != null) {
             mediaPlayer.release();
             mediaPlayer = null;
@@ -143,15 +145,23 @@ public class MainActivity extends BaseActivity implements MediaPlayer.OnPrepared
 
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void onMainEvent(BusEvent event) {
-        switch (event.id){
+        switch (event.id) {
             case EventBusId.syncTime:
                 L.d("收到同步");
 //                Pause();
-                if(mediaPlayer.isPlaying()){
+                if (mediaPlayer.isPlaying()) {
                     mediaPlayer.stop();
                 }
-                curIndex=0;
+                curIndex = 0;
                 play(list_Ad.get(0));
+                break;
+            case EventBusId.nextTime:
+                if (current_play < list_Ad.size() - 1) {
+                    current_play++;
+                } else {
+                    current_play = 0;
+                }
+                play(list_Ad.get(current_play));
                 break;
         }
     }
@@ -159,12 +169,13 @@ public class MainActivity extends BaseActivity implements MediaPlayer.OnPrepared
     @Override
     public void onCompletion(MediaPlayer mediaPlayer) {
         L.d(TAG, "onCompletion");
-        if (current_play < list_Ad.size() - 1) {
-            current_play++;
-        } else {
-            current_play = 0;
-        }
-        play(list_Ad.get(current_play));
+        isPlaying=false;
+//        if (current_play < list_Ad.size() - 1) {
+//            current_play++;
+//        } else {
+//            current_play = 0;
+//        }
+//        play(list_Ad.get(current_play));
     }
 
     /**
@@ -313,16 +324,17 @@ public class MainActivity extends BaseActivity implements MediaPlayer.OnPrepared
             }
         }
     }
+
     private void open(Uri uri) throws IOException {
 //        File file = new File(uri.toString());
 //        if (file != null) {//存在本地文件
 //            L.d("open local file:" + file.getAbsolutePath());
-            mediaPlayer.setDataSource(MainActivity.this,uri);
-            mediaPlayer.setDisplay(main_surf1.getHolder());
-            mediaPlayer.prepare();
-            isPlaying = true;
+        mediaPlayer.setDataSource(MainActivity.this, uri);
+        mediaPlayer.setDisplay(main_surf1.getHolder());
+        mediaPlayer.prepare();
+        isPlaying = true;
 //        }else{
 //            L.d("文件不存在");
 //        }
-        }
+    }
 }
