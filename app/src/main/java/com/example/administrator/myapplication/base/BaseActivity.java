@@ -126,6 +126,8 @@ public abstract class BaseActivity extends Activity {
                 }else if(mSecond!=0&&mSecond%nextTime==0){
                     L.d("next");
                     EventBusHelper.sendEvent(BusEvent.getEvent(EventBusId.nextTime));
+                }else if(mSecond==0){
+                    EventBusHelper.sendEvent(BusEvent.getEvent(EventBusId.nextTime));
                 }
             }
         }, 1, 1, TimeUnit.SECONDS);

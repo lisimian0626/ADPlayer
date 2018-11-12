@@ -61,7 +61,7 @@ public class MainActivity extends BaseActivity implements MediaPlayer.OnPrepared
 
     private void play(ADModel adModel) {
         stopPlayer();
-        syncTime = 2;
+        syncTime = 3;
         nextTime = 15;
         if (adModel == null) {
             return;
@@ -153,7 +153,8 @@ public class MainActivity extends BaseActivity implements MediaPlayer.OnPrepared
                     mediaPlayer.stop();
                 }
                 curIndex = 0;
-                play(list_Ad.get(0));
+                current_play = 0;
+                play(list_Ad.get(current_play));
                 break;
             case EventBusId.nextTime:
                 if (current_play < list_Ad.size() - 1) {
@@ -273,7 +274,7 @@ public class MainActivity extends BaseActivity implements MediaPlayer.OnPrepared
     @Override
     public void initData() {
         list_Ad = Arrays.asList(
-                new ADModel("1", 1, R.drawable.pic01, Uri.parse("android.resource://" + getPackageName() + "/" + R.raw.vedio01), 0),
+                new ADModel("1", 2, R.drawable.pic01, Uri.parse("android.resource://" + getPackageName() + "/" + R.raw.vedio01), 0),
                 new ADModel("2", 2, R.drawable.pic02, Uri.parse("android.resource://" + getPackageName() + "/" + R.raw.vedio02), 0),
                 new ADModel("3", 2, R.drawable.pic03, Uri.parse("android.resource://" + getPackageName() + "/" + R.raw.vedio03), 0),
                 new ADModel("4", 2, R.drawable.pic04, Uri.parse("android.resource://" + getPackageName() + "/" + R.raw.vedio04), 0),
