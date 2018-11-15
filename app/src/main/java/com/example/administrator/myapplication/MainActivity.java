@@ -61,8 +61,8 @@ public class MainActivity extends BaseActivity implements MediaPlayer.OnPrepared
 
     private void play(ADModel adModel) {
         stopPlayer();
-        syncTime = 3;
-        nextTime = 15;
+        syncTime = 4;
+        nextTime = 20;
         if (adModel == null) {
             return;
         }
