@@ -1,3 +1,8 @@
 <resources>
     <string name="app_name">My Application</string>
+    <string name="set_boot_start">开机自启动</string>
+    <string name="set_boot_start_dec">开启后,开机自动打开App</string>
+    <string name="set_auto_resume">退出自动恢复</string>
+    <string name="set_auto_resume_dec">开启后,退出App自动恢复</string>
+    <string name="set_close">关闭</string>
 </resources>

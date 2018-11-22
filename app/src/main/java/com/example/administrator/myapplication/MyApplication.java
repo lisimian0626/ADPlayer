@@ -13,6 +13,7 @@ import android.view.WindowManager;
 
 import com.example.administrator.myapplication.exception.UnCeHandler;
 import com.example.administrator.myapplication.utils.L;
+import com.example.administrator.myapplication.utils.PreferenceUtil;
 import com.tencent.bugly.crashreport.CrashReport;
 
 import java.util.ArrayList;
@@ -89,7 +90,7 @@ public class MyApplication extends Application implements Application.ActivityLi
     public void onActivityStopped(Activity activity) {
         L.d(Tag, "onActivityStopped");
         activityCount--;
-        if (0 == activityCount) {
+        if (0 == activityCount&& PreferenceUtil.getBoolean(this, "resume", true)) {
             isForeground = false;
             try {
                 Thread.sleep(5000);

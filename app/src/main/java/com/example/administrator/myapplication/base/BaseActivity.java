@@ -19,7 +19,7 @@ import java.util.Calendar;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
-public abstract class BaseActivity extends Activity {
+public abstract class BaseActivity extends AppCompatActivity {
     private String Tag="BaseActivity";
     private ScheduledExecutorService mScheduledExecutorService;
     public static int syncTime=5;

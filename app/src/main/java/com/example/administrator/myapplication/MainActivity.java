@@ -27,6 +27,7 @@ import com.example.administrator.myapplication.evenbus.BusEvent;
 import com.example.administrator.myapplication.evenbus.EventBusId;
 import com.example.administrator.myapplication.evenbus.PlayerEvent;
 import com.example.administrator.myapplication.model.ADModel;
+import com.example.administrator.myapplication.setting.SettingDialog;
 import com.example.administrator.myapplication.utils.AssetsUtils;
 import com.example.administrator.myapplication.utils.L;
 import com.example.administrator.myapplication.utils.MultiScreenUtils;
@@ -58,7 +59,9 @@ public class MainActivity extends BaseActivity implements MediaPlayer.OnPrepared
     private int curIndex = 0;
     private String curID = "";
     private boolean isPlaying = false;
-
+    private long mExitTime = 0;
+    private static final int MAX_EXIT_INTERVAL = 2000;
+    private SettingDialog settingDialog;
     private void play(ADModel adModel) {
         stopPlayer();
         syncTime = 4;
@@ -269,6 +272,12 @@ public class MainActivity extends BaseActivity implements MediaPlayer.OnPrepared
     public void setListener() {
         MyApplication application = (MyApplication) getApplication();
         application.init();
+        tv_tips.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                showSetting();
+            }
+        });
     }
 
     @Override
@@ -337,5 +346,17 @@ public class MainActivity extends BaseActivity implements MediaPlayer.OnPrepared
 //        }else{
 //            L.d("文件不存在");
 //        }
+    }
+    public void showSetting() {
+        if ((System.currentTimeMillis() - mExitTime) > MAX_EXIT_INTERVAL) {
+            mExitTime = System.currentTimeMillis();
+        } else {
+            if(settingDialog==null){
+                settingDialog=new SettingDialog();
+            }
+            if(!settingDialog.isAdded()) {
+                settingDialog.show(getSupportFragmentManager(), "setting");
+            }
+        }
     }
 }
