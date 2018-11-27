@@ -2,6 +2,8 @@ package com.example.administrator.myapplication.common;
 
 import android.os.Environment;
 
+import com.example.administrator.myapplication.utils.L;
+
 import java.io.File;
 
 /**
@@ -15,13 +17,13 @@ public class TConst {
 
 
 ////    测试环境
-//    public static final String BASE_URL = "http://192.168.1.233:8009/";
+    public static final String BASE_URL = "http://111.230.222.252:8981/";
 //    public static final String VERSION_UPDATE_URL = "http://60.195.40.230:2800/";
 
 
-//    //生产环境
-    public static final String BASE_URL = "http://minorder.beidousat.com";
-    public static final String VERSION_UPDATE_URL = "http://m.beidousat.com/";
+////    //生产环境
+//    public static final String BASE_URL = "http://minorder.beidousat.com";
+//    public static final String VERSION_UPDATE_URL = "http://m.beidousat.com/";
 
     public static final int PAGE_NUM = 20; //一页消息的数量
 
@@ -43,11 +45,12 @@ public class TConst {
 
 
     public static String getApkDir() {
-        String filepath = Environment.getExternalStorageDirectory().getPath()+APP_CACHE_DIR;
+        String filepath = Environment.getExternalStorageDirectory()+APP_ROOT_DIR;
         File file = new File(filepath);
 
         if (!file.exists()) {
-            file.mkdirs();
+            boolean mkdirs=file.mkdirs();
+            L.test("mkdirs:"+mkdirs);
         }
 
         return filepath;

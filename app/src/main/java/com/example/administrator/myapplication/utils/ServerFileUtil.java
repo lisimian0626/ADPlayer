@@ -19,12 +19,12 @@ public class ServerFileUtil {
      * @param filePath
      * @return
      */
-    public static String getVersionFileUrl(String filePath) {
-        if (TextUtils.isEmpty(filePath)) {
-            return "";
-        }
-
-        return (filePath.startsWith("http://") ||
-                filePath.startsWith("udp://")) ? filePath : (TConst.VERSION_UPDATE_URL + filePath);
-    }
+//    public static String getVersionFileUrl(String filePath) {
+//        if (TextUtils.isEmpty(filePath)) {
+//            return "";
+//        }
+//
+//        return (filePath.startsWith("http://") ||
+//                filePath.startsWith("udp://")) ? filePath : (TConst.VERSION_UPDATE_URL + filePath);
+//    }
 }

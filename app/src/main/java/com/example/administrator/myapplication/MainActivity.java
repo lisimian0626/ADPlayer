@@ -10,6 +10,7 @@ import android.os.Handler;
 import android.support.annotation.MainThread;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.text.TextUtils;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.SurfaceHolder;
@@ -21,14 +22,21 @@ import android.widget.LinearLayout;
 import android.widget.MediaController;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.example.administrator.myapplication.base.BaseActivity;
+
+import com.example.administrator.myapplication.bussiness.constract.ServerConstract;
+import com.example.administrator.myapplication.bussiness.persent.ServerPresenter;
+import com.example.administrator.myapplication.common.TConst;
 import com.example.administrator.myapplication.evenbus.BusEvent;
 import com.example.administrator.myapplication.evenbus.EventBusId;
 import com.example.administrator.myapplication.evenbus.PlayerEvent;
 import com.example.administrator.myapplication.model.ADModel;
+import com.example.administrator.myapplication.net.download.DownloadQueueHelper;
 import com.example.administrator.myapplication.setting.SettingDialog;
 import com.example.administrator.myapplication.utils.AssetsUtils;
+import com.example.administrator.myapplication.utils.DeviceUtil;
 import com.example.administrator.myapplication.utils.L;
 import com.example.administrator.myapplication.utils.MultiScreenUtils;
 import com.example.administrator.myapplication.utils.UIUtils;
@@ -41,11 +49,14 @@ import org.greenrobot.eventbus.ThreadMode;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
 
-public class MainActivity extends BaseActivity implements MediaPlayer.OnPreparedListener, MediaPlayer.OnCompletionListener, MediaPlayer.OnErrorListener {
+
+
+public class MainActivity extends BaseActivity implements MediaPlayer.OnPreparedListener, MediaPlayer.OnCompletionListener, MediaPlayer.OnErrorListener,ServerConstract.View {
     private final String TAG = "MainActivity";
     MediaPlayer mediaPlayer;
     List<ADModel> list_Ad;
@@ -62,6 +73,9 @@ public class MainActivity extends BaseActivity implements MediaPlayer.OnPrepared
     private long mExitTime = 0;
     private static final int MAX_EXIT_INTERVAL = 2000;
     private SettingDialog settingDialog;
+    private List<BaseDownloadTask> mTaskList = new ArrayList<>();
+    private ServerConstract.Presenter server;
+
     private void play(ADModel adModel) {
         stopPlayer();
         syncTime = 4;
@@ -149,24 +163,24 @@ public class MainActivity extends BaseActivity implements MediaPlayer.OnPrepared
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void onMainEvent(BusEvent event) {
         switch (event.id) {
-            case EventBusId.syncTime:
-                L.d("收到同步");
-//                Pause();
-                if (mediaPlayer.isPlaying()) {
-                    mediaPlayer.stop();
-                }
-                curIndex = 0;
-                current_play = 0;
-                play(list_Ad.get(current_play));
-                break;
-            case EventBusId.nextTime:
-                if (current_play < list_Ad.size() - 1) {
-                    current_play++;
-                } else {
-                    current_play = 0;
-                }
-                play(list_Ad.get(current_play));
-                break;
+//            case EventBusId.syncTime:
+//                L.d("收到同步");
+////                Pause();
+//                if (mediaPlayer.isPlaying()) {
+//                    mediaPlayer.stop();
+//                }
+//                curIndex = 0;
+//                current_play = 0;
+//                play(list_Ad.get(current_play));
+//                break;
+//            case EventBusId.nextTime:
+//                if (current_play < list_Ad.size() - 1) {
+//                    current_play++;
+//                } else {
+//                    current_play = 0;
+//                }
+//                play(list_Ad.get(current_play));
+//                break;
         }
     }
 
@@ -219,9 +233,47 @@ public class MainActivity extends BaseActivity implements MediaPlayer.OnPrepared
     protected void onResume() {
         super.onResume();
 //        hideToobar();
-        play();
-
+//        play();
+        L.d("mac:"+DeviceUtil.getWifiMac(this));
+        server.heartbeat(" {\"planID\":\"01\",\"adID\":\"01\",\"mac\":\"01\"}");
+//        startDownload();
     }
+
+    private void startDownload() {
+        mTaskList.clear();
+        File file = new File(TConst.getApkDir(), "test");
+        if (!file.exists()) {
+            BaseDownloadTask task = FileDownloader.getImpl().create("http://111.230.222.252:8982/file/zy20150801%E5%8C%97%E4%BA%AC.7z")
+                    .setPath(TConst.getApkDir()+ "test");
+            mTaskList.add(task);
+        }
+        DownloadQueueHelper.getInstance().downloadSequentially(mTaskList);
+        DownloadQueueHelper.getInstance().setOnDownloadListener(new DownloadQueueHelper.OnDownloadListener() {
+            @Override
+            public void onDownloadComplete(BaseDownloadTask task) {
+                L.test("下载完成");
+            }
+
+            @Override
+            public void onDownloadTaskError(BaseDownloadTask task, Throwable e) {
+                L.test("加载文件失败,请重新下载！");
+            }
+
+            @Override
+            public void onDownloadProgress(BaseDownloadTask task, int soFarBytes, int totalBytes) {
+                if (task == null) {
+                    return;
+                }
+                L.test((int) ((float) soFarBytes / totalBytes * 100) + "% 文件加载中...");
+            }
+
+            @Override
+            public void onDownloadTaskOver() {
+                L.test("队列内所有文件下载完成");
+            }
+        });
+    }
+
 
     private void play() {
         new Handler().postDelayed(new Runnable() {
@@ -236,6 +288,7 @@ public class MainActivity extends BaseActivity implements MediaPlayer.OnPrepared
     @Override
     protected void onPause() {
         super.onPause();
+        server.unsubscribe();
 //        Pause();
 //        Intent intent = new Intent(this, MainActivity.class);
 //        intent.addCategory(Intent.CATEGORY_LAUNCHER);
@@ -296,6 +349,7 @@ public class MainActivity extends BaseActivity implements MediaPlayer.OnPrepared
 
         );
         initPlayer();
+        server=new ServerPresenter(this);
     }
 
     @Override
@@ -307,6 +361,27 @@ public class MainActivity extends BaseActivity implements MediaPlayer.OnPrepared
     public void cancelLoadingRequest() {
 
     }
+
+    @Override
+    public void showProgress() {
+
+    }
+
+    @Override
+    public void hideProgress() {
+
+    }
+
+    @Override
+    public void setPresenter(ServerConstract.Presenter presenter) {
+    this.server=presenter;
+    }
+
+    @Override
+    public void onFeedBack(boolean success, String key, Object data) {
+
+    }
+
 
     private class SurfaceCallback implements SurfaceHolder.Callback {
         public void surfaceChanged(SurfaceHolder holder, int format, int width, int height) {
@@ -359,4 +434,5 @@ public class MainActivity extends BaseActivity implements MediaPlayer.OnPrepared
             }
         }
     }
+
 }

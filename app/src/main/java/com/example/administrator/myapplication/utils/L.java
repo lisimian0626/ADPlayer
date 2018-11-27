@@ -20,7 +20,10 @@ public class L {
         if (isDebug)
             Log.i(TAG, msg);
     }
-
+    public static void test(String msg) {
+        if (isDebug)
+            Log.i("test", msg);
+    }
     public static void d(String msg) {
         if (isDebug)
             Log.d(TAG, msg);
