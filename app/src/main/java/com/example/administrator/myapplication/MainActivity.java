@@ -63,6 +63,7 @@ public class MainActivity extends BaseActivity implements MediaPlayer.OnPrepared
     LinearLayout lin_mode1;
     ImageView iv_pic;
     SurfaceView main_surf1;
+    private CameraView cameraView;
     //    private RelativeLayout layout_main;
     int current_play = 0;
     private TextView tv_tips;
@@ -75,7 +76,7 @@ public class MainActivity extends BaseActivity implements MediaPlayer.OnPrepared
     private SettingDialog settingDialog;
     private List<BaseDownloadTask> mTaskList = new ArrayList<>();
     private ServerConstract.Presenter server;
-
+    private byte[] temp;
     private void play(ADModel adModel) {
         stopPlayer();
         syncTime = 4;
@@ -234,9 +235,10 @@ public class MainActivity extends BaseActivity implements MediaPlayer.OnPrepared
         super.onResume();
 //        hideToobar();
 //        play();
-        L.d("mac:"+DeviceUtil.getWifiMac(this));
-        server.heartbeat(" {\"planID\":\"01\",\"adID\":\"01\",\"mac\":\"01\"}");
-//        startDownload();
+//        L.d("mac:"+DeviceUtil.getCupChipID());
+//        server.heartbeat(" {\"planID\":\"01\",\"adID\":\"01\",\"mac\":\"e558779714542319\"}");
+//        File file = new File(TConst.getApkDir(), "test");
+
     }
 
     private void startDownload() {
@@ -319,6 +321,8 @@ public class MainActivity extends BaseActivity implements MediaPlayer.OnPrepared
         lin_mode1 = findViewById(R.id.lin_mode);
         iv_pic = findViewById(R.id.iv_pic);
         main_surf1 = findViewById(R.id.main_surf);
+        cameraView=findViewById(R.id.view_bottom);
+//        cameraView.setPreviewResolution(CAMERA_VIEW_WIDTH,CAMERA_VIEW_HEIGHT);
     }
 
     @Override
@@ -328,7 +332,14 @@ public class MainActivity extends BaseActivity implements MediaPlayer.OnPrepared
         tv_tips.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+//                startDownload();
                 showSetting();
+            }
+        });
+        cameraView.setPreviewCallback(new CameraView.PreviewCallback() {
+            @Override public void onGetYuvFrame(byte[] data) {
+                temp = data;
+                Log.e("lin","===lin===>  onGetYuvFrame");
             }
         });
     }
@@ -354,7 +365,7 @@ public class MainActivity extends BaseActivity implements MediaPlayer.OnPrepared
 
     @Override
     public void loadDataWhenOnResume() {
-
+        cameraView.startCamera();
     }
 
     @Override

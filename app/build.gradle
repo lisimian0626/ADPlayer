@@ -63,6 +63,6 @@ dependencies {
     api 'com.tencent.tinker:tinker-android-lib:1.9.6'
     api 'com.tencent.bugly:nativecrashreport:latest.release'
     //其中latest.release指代最新Bugly NDK版本号，也可以指定明确的版本号，例如3.0
-    api 'com.liulishuo.filedownloader:library:1.4.2'
+    api 'com.liulishuo.filedownloader:library:1.7.4'
     implementation files('libs/commons-net-3.6.jar')
 }

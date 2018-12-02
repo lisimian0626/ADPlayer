@@ -14,6 +14,7 @@ import android.view.WindowManager;
 import com.example.administrator.myapplication.exception.UnCeHandler;
 import com.example.administrator.myapplication.utils.L;
 import com.example.administrator.myapplication.utils.PreferenceUtil;
+import com.liulishuo.filedownloader.FileDownloader;
 import com.tencent.bugly.crashreport.CrashReport;
 
 import java.util.ArrayList;
@@ -32,6 +33,7 @@ public class MyApplication extends Application implements Application.ActivityLi
 
     public void init() {
         //设置该CrashHandler为程序的默认处理器
+        FileDownloader.setup(this);
         UnCeHandler catchExcep = new UnCeHandler(this);
         Thread.setDefaultUncaughtExceptionHandler(catchExcep);
         CrashReport.initCrashReport(getApplicationContext(), "a42cc2465b", false);

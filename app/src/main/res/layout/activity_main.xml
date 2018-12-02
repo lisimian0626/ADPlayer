@@ -38,13 +38,11 @@
             android:scaleType="fitXY"
             />
     </LinearLayout>
-    <LinearLayout
+    <com.example.administrator.myapplication.CameraView
         android:id="@+id/view_bottom"
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="650"
-        android:background="@android:color/holo_blue_dark"
         android:layout_alignParentBottom="true"
-        android:orientation="vertical"
         />
 </LinearLayout>
