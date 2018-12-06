@@ -10,8 +10,9 @@ import okhttp3.OkHttpClient;
 import okhttp3.logging.HttpLoggingInterceptor;
 import retrofit2.Converter;
 import retrofit2.Retrofit;
-import retrofit2.adapter.rxjava.RxJavaCallAdapterFactory;
+import retrofit2.adapter.rxjava2.RxJava2CallAdapterFactory;
 import retrofit2.converter.gson.GsonConverterFactory;
+
 
 /**
  * Retofit网络请求工具类
@@ -43,8 +44,8 @@ public class RetrofitUtils {
         mRetrofit = new Retrofit.Builder()
                 .client(client)//添加一个client,不然retrofit会自己默认添加一个
                 .baseUrl(TConst.BASE_URL)
-                .addConverterFactory(GsonConverterFactory.create())
-                .addCallAdapterFactory(RxJavaCallAdapterFactory.create())
+//                .addConverterFactory(GsonConverterFactory.create())
+                .addCallAdapterFactory(RxJava2CallAdapterFactory.create())
                 .build();
         return mRetrofit;
     }
@@ -66,7 +67,7 @@ public class RetrofitUtils {
                 .client(client)//添加一个client,不然retrofit会自己默认添加一个
                 .baseUrl(TConst.BASE_URL)
                 .addConverterFactory(convertFactory)
-                .addCallAdapterFactory(RxJavaCallAdapterFactory.create())
+                .addCallAdapterFactory(RxJava2CallAdapterFactory.create())
                 .build();
         return mRetrofit;
     }

@@ -6,8 +6,5 @@ package com.example.administrator.myapplication.base;
  * describe:
  */
 public interface BasePresenter {
-    void subscribe();
-
-    void unsubscribe();
-
+    void cancel();
 }

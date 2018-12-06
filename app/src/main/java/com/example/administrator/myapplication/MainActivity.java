@@ -1,51 +1,41 @@
 package com.example.administrator.myapplication;
 
-import android.app.ActivityManager;
-import android.content.ComponentName;
-import android.content.Intent;
-import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.Handler;
-import android.support.annotation.MainThread;
-import android.support.v7.app.AppCompatActivity;
-import android.os.Bundle;
-import android.text.TextUtils;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.view.View;
-import android.view.WindowManager;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
-import android.widget.MediaController;
-import android.widget.RelativeLayout;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.example.administrator.myapplication.base.BaseActivity;
-
-import com.example.administrator.myapplication.bussiness.constract.ServerConstract;
-import com.example.administrator.myapplication.bussiness.persent.ServerPresenter;
+import com.example.administrator.myapplication.bussiness.constract.MainConstract;
+import com.example.administrator.myapplication.bussiness.persent.MainPresenter;
 import com.example.administrator.myapplication.common.TConst;
 import com.example.administrator.myapplication.evenbus.BusEvent;
 import com.example.administrator.myapplication.evenbus.EventBusId;
 import com.example.administrator.myapplication.evenbus.PlayerEvent;
 import com.example.administrator.myapplication.model.ADModel;
+import com.example.administrator.myapplication.model.HeartbeatInfo;
+import com.example.administrator.myapplication.model.Schedule;
 import com.example.administrator.myapplication.net.download.DownloadQueueHelper;
 import com.example.administrator.myapplication.setting.SettingDialog;
-import com.example.administrator.myapplication.utils.AssetsUtils;
-import com.example.administrator.myapplication.utils.DeviceUtil;
 import com.example.administrator.myapplication.utils.L;
-import com.example.administrator.myapplication.utils.MultiScreenUtils;
-import com.example.administrator.myapplication.utils.UIUtils;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonParser;
 import com.liulishuo.filedownloader.BaseDownloadTask;
 import com.liulishuo.filedownloader.FileDownloader;
 
-import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.io.File;
 import java.io.IOException;
@@ -53,10 +43,11 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import okhttp3.Response;
+import okhttp3.ResponseBody;
 
 
-
-public class MainActivity extends BaseActivity implements MediaPlayer.OnPreparedListener, MediaPlayer.OnCompletionListener, MediaPlayer.OnErrorListener,ServerConstract.View {
+public class MainActivity extends BaseActivity implements MediaPlayer.OnPreparedListener, MediaPlayer.OnCompletionListener, MediaPlayer.OnErrorListener,MainConstract.MainView{
     private final String TAG = "MainActivity";
     MediaPlayer mediaPlayer;
     List<ADModel> list_Ad;
@@ -66,17 +57,18 @@ public class MainActivity extends BaseActivity implements MediaPlayer.OnPrepared
     private CameraView cameraView;
     //    private RelativeLayout layout_main;
     int current_play = 0;
+    private String cur_ADId="";
     private TextView tv_tips;
     private boolean isSurfaceCreated = false;        //surface是否已经创建好
     private int curIndex = 0;
-    private String curID = "";
     private boolean isPlaying = false;
     private long mExitTime = 0;
     private static final int MAX_EXIT_INTERVAL = 2000;
     private SettingDialog settingDialog;
     private List<BaseDownloadTask> mTaskList = new ArrayList<>();
-    private ServerConstract.Presenter server;
     private byte[] temp;
+    private ADModel cur_Ad;
+    private MainPresenter mainPresenter;
     private void play(ADModel adModel) {
         stopPlayer();
         syncTime = 4;
@@ -84,12 +76,13 @@ public class MainActivity extends BaseActivity implements MediaPlayer.OnPrepared
         if (adModel == null) {
             return;
         }
+        cur_Ad=adModel;
         tv_tips.setText("当前播放：" + "广告" + adModel.getID() + "|" + "模板" + adModel.getPlay_type());
         iv_pic.setVisibility(adModel.getPlay_type() == 2 ? View.VISIBLE : View.GONE);
         if (mediaPlayer == null) {
             CreateMediaPlayer();
         }
-        if (curID.equals(adModel.getID())) {
+        if (cur_ADId.equals(adModel.getID())) {
             if (curIndex > 0) {
                 mediaPlayer.seekTo(curIndex);
                 curIndex = 0;
@@ -111,7 +104,7 @@ public class MainActivity extends BaseActivity implements MediaPlayer.OnPrepared
                 mediaPlayer.setDisplay(main_surf1.getHolder());
                 break;
         }
-        curID = adModel.getID();
+        cur_ADId=adModel.getID();
     }
 
     private void initPlayer() {
@@ -164,24 +157,35 @@ public class MainActivity extends BaseActivity implements MediaPlayer.OnPrepared
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void onMainEvent(BusEvent event) {
         switch (event.id) {
-//            case EventBusId.syncTime:
-//                L.d("收到同步");
-////                Pause();
-//                if (mediaPlayer.isPlaying()) {
-//                    mediaPlayer.stop();
-//                }
-//                curIndex = 0;
-//                current_play = 0;
-//                play(list_Ad.get(current_play));
-//                break;
-//            case EventBusId.nextTime:
-//                if (current_play < list_Ad.size() - 1) {
-//                    current_play++;
-//                } else {
-//                    current_play = 0;
-//                }
-//                play(list_Ad.get(current_play));
-//                break;
+            case EventBusId.syncTime:
+                L.d("收到同步");
+//                Pause();
+                if (mediaPlayer.isPlaying()) {
+                    mediaPlayer.stop();
+                }
+                curIndex = 0;
+                current_play = 0;
+                play(list_Ad.get(current_play));
+                break;
+            case EventBusId.nextTime:
+                if (current_play < list_Ad.size() - 1) {
+                    current_play++;
+                } else {
+                    current_play = 0;
+                }
+                play(list_Ad.get(current_play));
+                break;
+            case EventBusId.heartbeat:
+                Schedule schedule = new Schedule();
+                if(cur_Ad!=null) {
+                    schedule.setAdID(cur_Ad.getID());
+                    schedule.setPlanID(String.valueOf(cur_Ad.getPlay_type()));
+                }
+//                schedule.setMac(DeviceUtil.getMac());
+                schedule.setMac("e558779714542319");
+                L.test("schedule:"+schedule.toString());
+                mainPresenter.fetchHeartbeat(schedule.toString());
+                break;
         }
     }
 
@@ -189,12 +193,6 @@ public class MainActivity extends BaseActivity implements MediaPlayer.OnPrepared
     public void onCompletion(MediaPlayer mediaPlayer) {
         L.d(TAG, "onCompletion");
         isPlaying=false;
-//        if (current_play < list_Ad.size() - 1) {
-//            current_play++;
-//        } else {
-//            current_play = 0;
-//        }
-//        play(list_Ad.get(current_play));
     }
 
     /**
@@ -234,9 +232,9 @@ public class MainActivity extends BaseActivity implements MediaPlayer.OnPrepared
     protected void onResume() {
         super.onResume();
 //        hideToobar();
-//        play();
+        play();
 //        L.d("mac:"+DeviceUtil.getCupChipID());
-//        server.heartbeat(" {\"planID\":\"01\",\"adID\":\"01\",\"mac\":\"e558779714542319\"}");
+
 //        File file = new File(TConst.getApkDir(), "test");
 
     }
@@ -290,7 +288,7 @@ public class MainActivity extends BaseActivity implements MediaPlayer.OnPrepared
     @Override
     protected void onPause() {
         super.onPause();
-        server.unsubscribe();
+
 //        Pause();
 //        Intent intent = new Intent(this, MainActivity.class);
 //        intent.addCategory(Intent.CATEGORY_LAUNCHER);
@@ -317,6 +315,7 @@ public class MainActivity extends BaseActivity implements MediaPlayer.OnPrepared
 
     @Override
     public void initViews() {
+        mainPresenter=new MainPresenter(this);
         tv_tips = findViewById(R.id.tv_tips);
         lin_mode1 = findViewById(R.id.lin_mode);
         iv_pic = findViewById(R.id.iv_pic);
@@ -360,12 +359,12 @@ public class MainActivity extends BaseActivity implements MediaPlayer.OnPrepared
 
         );
         initPlayer();
-        server=new ServerPresenter(this);
+//        cameraView.startCamera();
     }
 
     @Override
     public void loadDataWhenOnResume() {
-        cameraView.startCamera();
+
     }
 
     @Override
@@ -373,23 +372,28 @@ public class MainActivity extends BaseActivity implements MediaPlayer.OnPrepared
 
     }
 
-    @Override
-    public void showProgress() {
 
-    }
-
-    @Override
-    public void hideProgress() {
-
-    }
-
-    @Override
-    public void setPresenter(ServerConstract.Presenter presenter) {
-    this.server=presenter;
-    }
 
     @Override
     public void onFeedBack(boolean success, String key, Object data) {
+
+    }
+
+    @Override
+    public void OnHeartbeat(ResponseBody responseBody) {
+        try {
+            JSONArray jsonArray=new JSONArray(responseBody.toString());
+            JSONObject jsonObject= (JSONObject) jsonArray.get(0);
+
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+
+        L.test(responseBody.toString());
+    }
+
+    @Override
+    public void OngetPlan(HeartbeatInfo heartbeatInfopond) {
 
     }
 

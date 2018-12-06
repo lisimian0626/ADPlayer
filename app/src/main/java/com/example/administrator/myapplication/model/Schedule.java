@@ -1,9 +1,13 @@
 package com.example.administrator.myapplication.model;
 
-public class Schedule {
+import com.google.gson.Gson;
+
+import java.io.Serializable;
+
+public class Schedule implements Serializable{
     private String planID;
     private String AdID;
-    private String Mac;
+    private String mac;
 
     public String getPlanID() {
         return planID;
@@ -22,10 +26,24 @@ public class Schedule {
     }
 
     public String getMac() {
-        return Mac;
+        return mac;
     }
 
     public void setMac(String mac) {
-        Mac = mac;
+        this.mac = mac;
+    }
+
+    @Override
+    public String toString() {
+        return toJson();
+    }
+    private String toJson() {
+        try {
+            Gson gson = new Gson();
+            return gson.toJson(this);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return "";
     }
 }

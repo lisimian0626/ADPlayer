@@ -122,12 +122,14 @@ public abstract class BaseActivity extends AppCompatActivity {
                 if(mMinute!=0&&mMinute%syncTime==0&&mSecond==0){
                     L.d("同步");
                     EventBusHelper.sendEvent(BusEvent.getEvent(EventBusId.syncTime));
-                    return;
                 }else if(mSecond!=0&&mSecond%nextTime==0){
                     L.d("next");
                     EventBusHelper.sendEvent(BusEvent.getEvent(EventBusId.nextTime));
                 }else if(mSecond==0){
                     EventBusHelper.sendEvent(BusEvent.getEvent(EventBusId.nextTime));
+                    EventBusHelper.sendEvent(BusEvent.getEvent(EventBusId.heartbeat));
+                }else if(mSecond==30){
+                    EventBusHelper.sendEvent(BusEvent.getEvent(EventBusId.heartbeat));
                 }
             }
         }, 1, 1, TimeUnit.SECONDS);
@@ -138,5 +140,17 @@ public abstract class BaseActivity extends AppCompatActivity {
         super.onDestroy();
         stopScreenTimer();
         EventBusHelper.unregister(this);
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        loadDataWhenOnResume();
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        cancelLoadingRequest();
     }
 }
