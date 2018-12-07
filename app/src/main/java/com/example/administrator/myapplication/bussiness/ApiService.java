@@ -8,8 +8,8 @@ import org.json.JSONArray;
 import java.util.List;
 
 import io.reactivex.Observable;
-import okhttp3.Response;
 import okhttp3.ResponseBody;
+import retrofit2.Response;
 import retrofit2.http.GET;
 import retrofit2.http.Path;
 import retrofit2.http.Streaming;
@@ -23,5 +23,11 @@ public interface ApiService {
 
     @GET("/getHeartBreak/{json}")
     Observable<ResponseBody> heartbeat(@Path("json") String json);
+
+    @GET("/getPlan/{json}")
+    Observable<ResponseBody> getPlan(@Path("json") String json);
+
+    @GET("/getPlaylist/{json}")
+    Observable<ResponseBody> getPlaylist(@Path("json") String json);
 
 }

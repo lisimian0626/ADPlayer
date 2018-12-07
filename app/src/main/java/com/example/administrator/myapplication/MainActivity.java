@@ -3,6 +3,7 @@ package com.example.administrator.myapplication;
 import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.Handler;
+import android.text.TextUtils;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.SurfaceHolder;
@@ -20,11 +21,16 @@ import com.example.administrator.myapplication.evenbus.BusEvent;
 import com.example.administrator.myapplication.evenbus.EventBusId;
 import com.example.administrator.myapplication.evenbus.PlayerEvent;
 import com.example.administrator.myapplication.model.ADModel;
+import com.example.administrator.myapplication.model.GetPlanJson;
+import com.example.administrator.myapplication.model.HeartBeatJson;
 import com.example.administrator.myapplication.model.HeartbeatInfo;
-import com.example.administrator.myapplication.model.Schedule;
+import com.example.administrator.myapplication.model.PlanInfo;
+import com.example.administrator.myapplication.model.PlanforResult;
+import com.example.administrator.myapplication.model.PlanlistJson;
 import com.example.administrator.myapplication.net.download.DownloadQueueHelper;
 import com.example.administrator.myapplication.setting.SettingDialog;
 import com.example.administrator.myapplication.utils.L;
+import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonParser;
@@ -33,9 +39,6 @@ import com.liulishuo.filedownloader.FileDownloader;
 
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
 
 import java.io.File;
 import java.io.IOException;
@@ -43,14 +46,12 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import okhttp3.Response;
 import okhttp3.ResponseBody;
 
 
 public class MainActivity extends BaseActivity implements MediaPlayer.OnPreparedListener, MediaPlayer.OnCompletionListener, MediaPlayer.OnErrorListener,MainConstract.MainView{
     private final String TAG = "MainActivity";
     MediaPlayer mediaPlayer;
-    List<ADModel> list_Ad;
     LinearLayout lin_mode1;
     ImageView iv_pic;
     SurfaceView main_surf1;
@@ -67,12 +68,13 @@ public class MainActivity extends BaseActivity implements MediaPlayer.OnPrepared
     private SettingDialog settingDialog;
     private List<BaseDownloadTask> mTaskList = new ArrayList<>();
     private byte[] temp;
+    private List<ADModel> adModelList;
     private ADModel cur_Ad;
     private MainPresenter mainPresenter;
+    private PlanInfo curPlanInfo;
+    private String cur_planID;
     private void play(ADModel adModel) {
         stopPlayer();
-        syncTime = 4;
-        nextTime = 20;
         if (adModel == null) {
             return;
         }
@@ -165,26 +167,26 @@ public class MainActivity extends BaseActivity implements MediaPlayer.OnPrepared
                 }
                 curIndex = 0;
                 current_play = 0;
-                play(list_Ad.get(current_play));
+                play();
                 break;
             case EventBusId.nextTime:
-                if (current_play < list_Ad.size() - 1) {
+                if (current_play < adModelList.size() - 1) {
                     current_play++;
                 } else {
                     current_play = 0;
                 }
-                play(list_Ad.get(current_play));
+                play(adModelList.get(current_play));
                 break;
             case EventBusId.heartbeat:
-                Schedule schedule = new Schedule();
+                HeartBeatJson heartBeatJson = new HeartBeatJson();
                 if(cur_Ad!=null) {
-                    schedule.setAdID(cur_Ad.getID());
-                    schedule.setPlanID(String.valueOf(cur_Ad.getPlay_type()));
+                    heartBeatJson.setAdID(cur_Ad.getID());
+                    heartBeatJson.setPlanID(String.valueOf(cur_Ad.getPlay_type()));
                 }
-//                schedule.setMac(DeviceUtil.getMac());
-                schedule.setMac("e558779714542319");
-                L.test("schedule:"+schedule.toString());
-                mainPresenter.fetchHeartbeat(schedule.toString());
+//                heartBeatJson.setMac(DeviceUtil.getMac());
+                heartBeatJson.setMac("e558779714542319");
+                L.test("heartBeatJson:"+heartBeatJson.toString());
+                mainPresenter.fetchHeartbeat(heartBeatJson.toString());
                 break;
         }
     }
@@ -279,8 +281,8 @@ public class MainActivity extends BaseActivity implements MediaPlayer.OnPrepared
         new Handler().postDelayed(new Runnable() {
             @Override
             public void run() {
-                if (isSurfaceCreated)
-                    play(list_Ad.get(current_play));
+                if (isSurfaceCreated&&adModelList!=null&&adModelList.size()>0)
+                    play(adModelList.get(current_play));
             }
         }, 1000);
     }
@@ -345,23 +347,44 @@ public class MainActivity extends BaseActivity implements MediaPlayer.OnPrepared
 
     @Override
     public void initData() {
-        list_Ad = Arrays.asList(
-                new ADModel("1", 2, R.drawable.pic01, Uri.parse("android.resource://" + getPackageName() + "/" + R.raw.vedio01), 0),
-                new ADModel("2", 2, R.drawable.pic02, Uri.parse("android.resource://" + getPackageName() + "/" + R.raw.vedio02), 0),
-                new ADModel("3", 2, R.drawable.pic03, Uri.parse("android.resource://" + getPackageName() + "/" + R.raw.vedio03), 0),
-                new ADModel("4", 2, R.drawable.pic04, Uri.parse("android.resource://" + getPackageName() + "/" + R.raw.vedio04), 0),
-                new ADModel("5", 2, R.drawable.pic05, Uri.parse("android.resource://" + getPackageName() + "/" + R.raw.vedio05), 0),
-                new ADModel("6", 2, R.drawable.pic06, Uri.parse("android.resource://" + getPackageName() + "/" + R.raw.vedio06), 0),
-                new ADModel("7", 2, R.drawable.pic07, Uri.parse("android.resource://" + getPackageName() + "/" + R.raw.vedio07), 0),
-                new ADModel("8", 2, R.drawable.pic08, Uri.parse("android.resource://" + getPackageName() + "/" + R.raw.vedio08), 0),
-                new ADModel("9", 2, R.drawable.pic09, Uri.parse("android.resource://" + getPackageName() + "/" + R.raw.vedio09), 0),
-                new ADModel("10", 2, R.drawable.pic10, Uri.parse("android.resource://" + getPackageName() + "/" + R.raw.vedio10), 0)
-
-        );
+        initPlan(getDefPlan());
         initPlayer();
 //        cameraView.startCamera();
     }
 
+    private PlanInfo getDefPlan() {
+        PlanInfo planInfo=new PlanInfo();
+        List<ADModel> list_Ad;
+        list_Ad = Arrays.asList(
+                new ADModel("1", 2, R.drawable.pic01, Uri.parse("android.resource://" + getPackageName() + "/" + R.raw.vedio01)),
+                new ADModel("2", 2, R.drawable.pic02, Uri.parse("android.resource://" + getPackageName() + "/" + R.raw.vedio02)),
+                new ADModel("3", 2, R.drawable.pic03, Uri.parse("android.resource://" + getPackageName() + "/" + R.raw.vedio03)),
+                new ADModel("4", 2, R.drawable.pic04, Uri.parse("android.resource://" + getPackageName() + "/" + R.raw.vedio04)),
+                new ADModel("5", 2, R.drawable.pic05, Uri.parse("android.resource://" + getPackageName() + "/" + R.raw.vedio05)),
+                new ADModel("6", 2, R.drawable.pic06, Uri.parse("android.resource://" + getPackageName() + "/" + R.raw.vedio06)),
+                new ADModel("7", 2, R.drawable.pic07, Uri.parse("android.resource://" + getPackageName() + "/" + R.raw.vedio07)),
+                new ADModel("8", 2, R.drawable.pic08, Uri.parse("android.resource://" + getPackageName() + "/" + R.raw.vedio08)),
+                new ADModel("9", 2, R.drawable.pic09, Uri.parse("android.resource://" + getPackageName() + "/" + R.raw.vedio09)),
+                new ADModel("10", 2, R.drawable.pic10, Uri.parse("android.resource://" + getPackageName() + "/" + R.raw.vedio10))
+
+        );
+        planInfo.setPlanID("0");
+        planInfo.setAdModelList(list_Ad);
+        planInfo.setSecond(20);
+        planInfo.setTotal(4);
+        return planInfo;
+    }
+
+
+    private void initPlan(PlanInfo planInfo){
+        if(planInfo!=null&&!TextUtils.isEmpty(planInfo.getPlanID())&&planInfo.getAdModelList()!=null&&planInfo.getAdModelList().size()>0) {
+            cur_planID = planInfo.getPlanID();
+            syncTime = planInfo.getTotal();
+            nextTime = planInfo.getSecond();
+            adModelList = planInfo.getAdModelList();
+        }
+        startScreenTimer();
+    }
     @Override
     public void loadDataWhenOnResume() {
 
@@ -381,20 +404,66 @@ public class MainActivity extends BaseActivity implements MediaPlayer.OnPrepared
 
     @Override
     public void OnHeartbeat(ResponseBody responseBody) {
+        //Json的解析类对象
+        JsonParser parser = new JsonParser();
         try {
-            JSONArray jsonArray=new JSONArray(responseBody.toString());
-            JSONObject jsonObject= (JSONObject) jsonArray.get(0);
+            JsonArray jsonArray = parser.parse(responseBody.string()).getAsJsonArray();
+            Gson gson = new Gson();
+            ArrayList<HeartbeatInfo> heartbeatInfoArrayList = new ArrayList<>();
 
-        } catch (JSONException e) {
+            //加强for循环遍历JsonArray
+            for (JsonElement user : jsonArray) {
+                //使用GSON，直接转成Bean对象
+                HeartbeatInfo heartbeatInfo = gson.fromJson(user, HeartbeatInfo.class);
+                heartbeatInfoArrayList.add(heartbeatInfo);
+            }
+            String newPlanId=heartbeatInfoArrayList.get(0).getNewPlanID();
+            if(!TextUtils.isEmpty(newPlanId)&&!newPlanId.equals(cur_planID)){
+                GetPlanJson getPlanJson=new GetPlanJson();
+                getPlanJson.setPlanID(newPlanId);
+                getPlanJson.setMac("e558779714542319");
+                L.test(getPlanJson.toString());
+            mainPresenter.fetchPlan(getPlanJson.toString());
+            }
+        } catch (IOException e) {
             e.printStackTrace();
         }
-
-        L.test(responseBody.toString());
     }
 
     @Override
-    public void OngetPlan(HeartbeatInfo heartbeatInfopond) {
+    public void OngetPlan(ResponseBody responseBody) {
+        try {
+            JsonParser parser = new JsonParser();
+            JsonArray jsonArray = parser.parse(responseBody.string()).getAsJsonArray();
+            Gson gson = new Gson();
+            ArrayList<PlanforResult> planforResultArrayList = new ArrayList<>();
 
+            //加强for循环遍历JsonArray
+            for (JsonElement user : jsonArray) {
+                //使用GSON，直接转成Bean对象
+                PlanforResult planforResult = gson.fromJson(user, PlanforResult.class);
+                planforResultArrayList.add(planforResult);
+            }
+            int profileID=planforResultArrayList.get(0).getProfileID();
+            //    getPlaylist/{"playlistID":"36","total":"30","mac":"e558779714542319"}
+            PlanlistJson planlistJson=new PlanlistJson();
+            planlistJson.setPlaylistID(String.valueOf(profileID));
+            planlistJson.setMac("e558779714542319");
+            L.test(planlistJson.toString());
+            mainPresenter.fetctPlanList(planlistJson.toString());
+//            L.test(planforResultArrayList.get(0).getProfileID()+"");
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    @Override
+    public void OnGetPlanList(ResponseBody responseBody) {
+        try {
+            L.test(responseBody.string());
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
 

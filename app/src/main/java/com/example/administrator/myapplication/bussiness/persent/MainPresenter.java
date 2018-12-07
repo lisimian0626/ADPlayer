@@ -4,19 +4,13 @@ package com.example.administrator.myapplication.bussiness.persent;
 import com.example.administrator.myapplication.base.CommonPresenter;
 import com.example.administrator.myapplication.bussiness.constract.MainConstract;
 import com.example.administrator.myapplication.exception.AbsExceptionEngine;
-import com.example.administrator.myapplication.model.HeartbeatInfo;
-import com.google.gson.JsonElement;
-
-import org.json.JSONArray;
-
-import java.util.List;
 
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.disposables.Disposable;
 import io.reactivex.functions.Consumer;
 import io.reactivex.schedulers.Schedulers;
-import okhttp3.Response;
 import okhttp3.ResponseBody;
+import retrofit2.Response;
 
 /**
  * author: Hanson
@@ -37,13 +31,13 @@ public class MainPresenter extends CommonPresenter<MainConstract.MainView> imple
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(new Consumer<ResponseBody>() {
                     @Override
-                    public void accept(ResponseBody respond) throws Exception {
-                     mView.OnHeartbeat(respond);
+                    public void accept(ResponseBody responseBody) throws Exception {
+                        mView.OnHeartbeat(responseBody);
                     }
                 }, new AbsExceptionEngine() {
                     @Override
                     public void handMessage(String message) {
-                        mView.onFeedBack(false,method,message);
+                        mView.onFeedBack(false, method, message);
                     }
                 });
 
@@ -52,6 +46,43 @@ public class MainPresenter extends CommonPresenter<MainConstract.MainView> imple
 
     @Override
     public void fetchPlan(String json) {
+        final String method = getMethodName();
+        Disposable disposable = mApiService.getPlan(json)
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(new Consumer<ResponseBody>() {
+                    @Override
+                    public void accept(ResponseBody responseBody) throws Exception {
+                        mView.OngetPlan(responseBody);
+                    }
+                }, new AbsExceptionEngine() {
+                    @Override
+                    public void handMessage(String message) {
+                        mView.onFeedBack(false, method, message);
+                    }
+                });
 
+        addDispose(disposable);
+    }
+
+    @Override
+    public void fetctPlanList(String json) {
+        final String method = getMethodName();
+        Disposable disposable = mApiService.getPlaylist(json)
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(new Consumer<ResponseBody>() {
+                    @Override
+                    public void accept(ResponseBody responseBody) throws Exception {
+                        mView.OnGetPlanList(responseBody);
+                    }
+                }, new AbsExceptionEngine() {
+                    @Override
+                    public void handMessage(String message) {
+                        mView.onFeedBack(false, method, message);
+                    }
+                });
+
+        addDispose(disposable);
     }
 }

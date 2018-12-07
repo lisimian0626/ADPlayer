@@ -7,14 +7,11 @@ public class ADModel {
     private int play_type;
     private int image_url;
     private Uri video_url;
-    private int duration;
-
-    public ADModel(String ID, int play_type, int image_url, Uri uri, int duration) {
+    public ADModel(String ID, int play_type, int image_url, Uri uri) {
         this.ID = ID;
         this.play_type = play_type;
         this.image_url = image_url;
         this.video_url = uri;
-        this.duration = duration;
     }
 
     public String getID() {
@@ -49,11 +46,4 @@ public class ADModel {
         this.video_url = video_url;
     }
 
-    public int getDuration() {
-        return duration;
-    }
-
-    public void setDuration(int duration) {
-        this.duration = duration;
-    }
 }

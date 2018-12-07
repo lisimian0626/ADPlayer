@@ -4,7 +4,7 @@ import com.google.gson.Gson;
 
 import java.io.Serializable;
 
-public class Schedule implements Serializable{
+public class HeartBeatJson implements Serializable{
     private String planID;
     private String AdID;
     private String mac;

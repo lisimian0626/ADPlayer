@@ -20,10 +20,11 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
 public abstract class BaseActivity extends AppCompatActivity {
-    private String Tag="BaseActivity";
+    private String Tag = "BaseActivity";
     private ScheduledExecutorService mScheduledExecutorService;
-    public static int syncTime=5;
-    public static int nextTime=20;
+    public static int syncTime = 5;
+    public static int nextTime = 20;
+
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -35,7 +36,7 @@ public abstract class BaseActivity extends AppCompatActivity {
         setupToolbar();
         setListener();
         initData();
-        startScreenTimer();
+//        startScreenTimer();
     }
 
     protected void hideToobar() {
@@ -64,8 +65,10 @@ public abstract class BaseActivity extends AppCompatActivity {
             // TODO: handle exception
         }
     }
+
     public abstract @LayoutRes
     int getContentView();
+
     /**
      * 初始化视图
      */
@@ -94,7 +97,8 @@ public abstract class BaseActivity extends AppCompatActivity {
     public void setupToolbar() {
 
     }
-       private void startScreenTimer() {
+
+    protected void startScreenTimer() {
         if (mScheduledExecutorService != null && !mScheduledExecutorService.isShutdown())
             return;
         mScheduledExecutorService = java.util.concurrent.Executors.newScheduledThreadPool(1);
@@ -113,22 +117,22 @@ public abstract class BaseActivity extends AppCompatActivity {
         service.scheduleAtFixedRate(new Runnable() {
             @Override
             public void run() {
-                long time=System.currentTimeMillis();
-                Calendar mCalendar=Calendar.getInstance();
+                long time = System.currentTimeMillis();
+                Calendar mCalendar = Calendar.getInstance();
                 mCalendar.setTimeInMillis(time);
-                int mMinute=mCalendar.get(Calendar.MINUTE);
-                int mSecond=mCalendar.get(Calendar.SECOND);
-                L.d("minute:"+mMinute+"   second:"+mSecond);
-                if(mMinute!=0&&mMinute%syncTime==0&&mSecond==0){
+                int mMinute = mCalendar.get(Calendar.MINUTE);
+                int mSecond = mCalendar.get(Calendar.SECOND);
+                L.d("minute:" + mMinute + "   second:" + mSecond);
+                if (mMinute != 0 && mMinute % syncTime == 0 && mSecond == 0) {
                     L.d("同步");
                     EventBusHelper.sendEvent(BusEvent.getEvent(EventBusId.syncTime));
-                }else if(mSecond!=0&&mSecond%nextTime==0){
+                } else if (mSecond != 0 && mSecond % nextTime == 0) {
                     L.d("next");
                     EventBusHelper.sendEvent(BusEvent.getEvent(EventBusId.nextTime));
-                }else if(mSecond==0){
+                } else if (mSecond == 0) {
                     EventBusHelper.sendEvent(BusEvent.getEvent(EventBusId.nextTime));
                     EventBusHelper.sendEvent(BusEvent.getEvent(EventBusId.heartbeat));
-                }else if(mSecond==30){
+                } else if (mSecond == 30) {
                     EventBusHelper.sendEvent(BusEvent.getEvent(EventBusId.heartbeat));
                 }
             }
