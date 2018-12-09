@@ -25,6 +25,7 @@ import com.example.administrator.myapplication.model.GetPlanJson;
 import com.example.administrator.myapplication.model.HeartBeatJson;
 import com.example.administrator.myapplication.model.HeartbeatInfo;
 import com.example.administrator.myapplication.model.PlanInfo;
+import com.example.administrator.myapplication.model.PlanListInfo;
 import com.example.administrator.myapplication.model.PlanforResult;
 import com.example.administrator.myapplication.model.PlanlistJson;
 import com.example.administrator.myapplication.net.download.DownloadQueueHelper;
@@ -42,6 +43,8 @@ import org.greenrobot.eventbus.ThreadMode;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.URL;
+import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -241,11 +244,11 @@ public class MainActivity extends BaseActivity implements MediaPlayer.OnPrepared
 
     }
 
-    private void startDownload() {
+    private void startDownload(String url) {
         mTaskList.clear();
         File file = new File(TConst.getApkDir(), "test");
         if (!file.exists()) {
-            BaseDownloadTask task = FileDownloader.getImpl().create("http://111.230.222.252:8982/file/zy20150801%E5%8C%97%E4%BA%AC.7z")
+            BaseDownloadTask task = FileDownloader.getImpl().create(url)
                     .setPath(TConst.getApkDir()+ "test");
             mTaskList.add(task);
         }
@@ -333,7 +336,7 @@ public class MainActivity extends BaseActivity implements MediaPlayer.OnPrepared
         tv_tips.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-//                startDownload();
+                startDownload("http://minik.beidousat.com:2800/data/song/yc1/10830920.mp4");
                 showSetting();
             }
         });
@@ -372,6 +375,7 @@ public class MainActivity extends BaseActivity implements MediaPlayer.OnPrepared
         planInfo.setAdModelList(list_Ad);
         planInfo.setSecond(20);
         planInfo.setTotal(4);
+        L.test("planinfo:"+planInfo.toString());
         return planInfo;
     }
 
@@ -460,7 +464,20 @@ public class MainActivity extends BaseActivity implements MediaPlayer.OnPrepared
     @Override
     public void OnGetPlanList(ResponseBody responseBody) {
         try {
-            L.test(responseBody.string());
+            JsonParser parser = new JsonParser();
+            JsonArray jsonArray = parser.parse(responseBody.string()).getAsJsonArray();
+            Gson gson = new Gson();
+            ArrayList<PlanListInfo> planListInfoArrayList = new ArrayList<>();
+
+            //加强for循环遍历JsonArray
+            for (JsonElement user : jsonArray) {
+                //使用GSON，直接转成Bean对象
+                PlanListInfo planListInfo = gson.fromJson(user, PlanListInfo.class);
+                planListInfoArrayList.add(planListInfo);
+            }
+//            String url=URLEncoder.encode(planListInfoArrayList.get(0).getURL(), "utf-8");
+//            startDownload(url);
+//            L.test("url:"+url);
         } catch (IOException e) {
             e.printStackTrace();
         }
