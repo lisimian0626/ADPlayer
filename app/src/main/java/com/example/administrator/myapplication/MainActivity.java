@@ -1,5 +1,6 @@
 package com.example.administrator.myapplication;
 
+import android.app.smdt.SmdtManager;
 import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.Handler;
@@ -12,6 +13,7 @@ import android.view.View;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.example.administrator.myapplication.base.BaseActivity;
 import com.example.administrator.myapplication.bussiness.constract.MainConstract;
@@ -79,6 +81,7 @@ public class MainActivity extends BaseActivity implements MediaPlayer.OnPrepared
     private MainPresenter mainPresenter;
     private PlanInfo curPlanInfo;
     private String cur_planID,new_planID;
+    private SmdtManager smdt;
 
     private void play(ADModel adModel) {
         stopPlayer();
@@ -190,13 +193,13 @@ public class MainActivity extends BaseActivity implements MediaPlayer.OnPrepared
                 break;
             case EventBusId.heartbeat:
                 HeartBeatJson heartBeatJson = new HeartBeatJson();
-                if (cur_Ad != null) {
+                if(cur_Ad!=null) {
                     heartBeatJson.setAdID(cur_Ad.getID());
                     heartBeatJson.setPlanID(String.valueOf(cur_Ad.getPlay_type()));
                 }
 //                heartBeatJson.setMac(DeviceUtil.getMac());
                 heartBeatJson.setMac("e558779714542319");
-                L.test("heartBeatJson:" + heartBeatJson.toString());
+                L.test("heartBeatJson:"+heartBeatJson.toString());
                 mainPresenter.fetchHeartbeat(heartBeatJson.toString());
                 break;
         }
@@ -205,7 +208,7 @@ public class MainActivity extends BaseActivity implements MediaPlayer.OnPrepared
     @Override
     public void onCompletion(MediaPlayer mediaPlayer) {
         L.d(TAG, "onCompletion");
-        isPlaying = false;
+        isPlaying=false;
     }
 
     /**
@@ -240,6 +243,8 @@ public class MainActivity extends BaseActivity implements MediaPlayer.OnPrepared
         }
         return super.onKeyDown(keyCode, event);
     }
+
+
 
     @Override
     protected void onResume() {
@@ -286,8 +291,8 @@ public class MainActivity extends BaseActivity implements MediaPlayer.OnPrepared
                 if (task == null) {
                     return;
                 }
-                tv_process.setText(task.getFilename() + "  " + (int) ((float) soFarBytes / totalBytes * 100) + "% 文件下载中...");
-                L.test((int) ((float) soFarBytes / totalBytes * 100) + "% 文件加载中...");
+                tv_process.setText(task.getFilename() + "  " + String.format("%.2f", (float) soFarBytes / totalBytes) + "% 文件下载中...");
+                L.test((soFarBytes / totalBytes) * 100 + "   "+"sofar:"+soFarBytes+"    total:"+totalBytes);
             }
 
             @Override
@@ -339,13 +344,13 @@ public class MainActivity extends BaseActivity implements MediaPlayer.OnPrepared
 
     @Override
     public void initViews() {
-        mainPresenter = new MainPresenter(this);
+        mainPresenter=new MainPresenter(this);
         tv_tips = findViewById(R.id.tv_tips);
         tv_process = findViewById(R.id.tv_process);
         lin_mode1 = findViewById(R.id.lin_mode);
         iv_pic = findViewById(R.id.iv_pic);
         main_surf1 = findViewById(R.id.main_surf);
-        cameraView = findViewById(R.id.view_bottom);
+        cameraView=findViewById(R.id.view_bottom);
 //        cameraView.setPreviewResolution(CAMERA_VIEW_WIDTH,CAMERA_VIEW_HEIGHT);
     }
 
@@ -360,10 +365,9 @@ public class MainActivity extends BaseActivity implements MediaPlayer.OnPrepared
             }
         });
         cameraView.setPreviewCallback(new CameraView.PreviewCallback() {
-            @Override
-            public void onGetYuvFrame(byte[] data) {
+            @Override public void onGetYuvFrame(byte[] data) {
                 temp = data;
-                Log.e("lin", "===lin===>  onGetYuvFrame");
+                Log.e("lin","===lin===>  onGetYuvFrame");
             }
         });
     }
@@ -408,7 +412,6 @@ public class MainActivity extends BaseActivity implements MediaPlayer.OnPrepared
         }
         startScreenTimer();
     }
-
     @Override
     public void loadDataWhenOnResume() {
 
@@ -418,6 +421,7 @@ public class MainActivity extends BaseActivity implements MediaPlayer.OnPrepared
     public void cancelLoadingRequest() {
 
     }
+
 
 
     @Override
@@ -585,5 +589,16 @@ public class MainActivity extends BaseActivity implements MediaPlayer.OnPrepared
             }
         }
     }
+
+    private boolean SetHdmi(Boolean enable) {
+        boolean ret1 = smdt.setHdmiInAudioEnable(getApplicationContext(), enable);
+        if (ret1) {
+            Toast.makeText(getApplicationContext(), "hdmi audio open success!", Toast.LENGTH_SHORT).show();
+        } else {
+            Toast.makeText(getApplicationContext(), "hdmi audio open failed!", Toast.LENGTH_SHORT).show();
+        }
+        return ret1;
+    }
+
 
 }
