@@ -7,14 +7,28 @@
     android:layout_height="match_parent"
     android:orientation="vertical"
     tools:context=".MainActivity">
-    <TextView
-        android:id="@+id/tv_tips"
-        android:layout_width="wrap_content"
+    <LinearLayout
+        android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="60"
-        android:text="28sp"
-        android:layout_gravity="center_vertical"
-        />
+        >
+        <TextView
+            android:id="@+id/tv_tips"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="40px"
+            android:layout_gravity="center_vertical"
+            />
+        <TextView
+            android:id="@+id/tv_process"
+            android:layout_marginLeft="60px"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="40px"
+            android:visibility="gone"
+            android:layout_gravity="center_vertical"
+            />
+    </LinearLayout>
 
     <LinearLayout
         android:id="@+id/lin_mode"

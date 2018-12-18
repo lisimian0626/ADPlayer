@@ -47,12 +47,14 @@ import java.net.URL;
 import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import okhttp3.ResponseBody;
 
 
-public class MainActivity extends BaseActivity implements MediaPlayer.OnPreparedListener, MediaPlayer.OnCompletionListener, MediaPlayer.OnErrorListener,MainConstract.MainView{
+public class MainActivity extends BaseActivity implements MediaPlayer.OnPreparedListener, MediaPlayer.OnCompletionListener, MediaPlayer.OnErrorListener, MainConstract.MainView {
     private final String TAG = "MainActivity";
     MediaPlayer mediaPlayer;
     LinearLayout lin_mode1;
@@ -61,11 +63,12 @@ public class MainActivity extends BaseActivity implements MediaPlayer.OnPrepared
     private CameraView cameraView;
     //    private RelativeLayout layout_main;
     int current_play = 0;
-    private String cur_ADId="";
-    private TextView tv_tips;
+    private String cur_ADId = "";
+    private TextView tv_tips, tv_process;
     private boolean isSurfaceCreated = false;        //surface是否已经创建好
     private int curIndex = 0;
     private boolean isPlaying = false;
+    private boolean isDownLoading = false;
     private long mExitTime = 0;
     private static final int MAX_EXIT_INTERVAL = 2000;
     private SettingDialog settingDialog;
@@ -75,13 +78,14 @@ public class MainActivity extends BaseActivity implements MediaPlayer.OnPrepared
     private ADModel cur_Ad;
     private MainPresenter mainPresenter;
     private PlanInfo curPlanInfo;
-    private String cur_planID;
+    private String cur_planID,new_planID;
+
     private void play(ADModel adModel) {
         stopPlayer();
         if (adModel == null) {
             return;
         }
-        cur_Ad=adModel;
+        cur_Ad = adModel;
         tv_tips.setText("当前播放：" + "广告" + adModel.getID() + "|" + "模板" + adModel.getPlay_type());
         iv_pic.setVisibility(adModel.getPlay_type() == 2 ? View.VISIBLE : View.GONE);
         if (mediaPlayer == null) {
@@ -95,7 +99,7 @@ public class MainActivity extends BaseActivity implements MediaPlayer.OnPrepared
             mediaPlayer.start();
         } else {
             try {
-                open(adModel.getVideo_url());
+                open(Uri.parse(adModel.getVideo_url()));
             } catch (IOException e) {
                 e.printStackTrace();
             }
@@ -105,11 +109,11 @@ public class MainActivity extends BaseActivity implements MediaPlayer.OnPrepared
                 break;
             case 2:
 
-                iv_pic.setImageResource(adModel.getImage_url());
+                iv_pic.setImageResource(Integer.valueOf(adModel.getVideo_url()));
                 mediaPlayer.setDisplay(main_surf1.getHolder());
                 break;
         }
-        cur_ADId=adModel.getID();
+        cur_ADId = adModel.getID();
     }
 
     private void initPlayer() {
@@ -154,6 +158,10 @@ public class MainActivity extends BaseActivity implements MediaPlayer.OnPrepared
 
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void onPlayerEvent(PlayerEvent event) {
+        switch (event.getId()) {
+            case PlayerEvent.TYPE_DOWNLOADCOMPLITE:
+                break;
+        }
 //        BaseDownloadTask task = FileDownloader.getImpl().create(mSong.getMp3FilePath())
 //                .setPath(Constant.File.getMusicDir()+ mSong.getMusicFilename());
 //        mTaskList.add(task);
@@ -182,13 +190,13 @@ public class MainActivity extends BaseActivity implements MediaPlayer.OnPrepared
                 break;
             case EventBusId.heartbeat:
                 HeartBeatJson heartBeatJson = new HeartBeatJson();
-                if(cur_Ad!=null) {
+                if (cur_Ad != null) {
                     heartBeatJson.setAdID(cur_Ad.getID());
                     heartBeatJson.setPlanID(String.valueOf(cur_Ad.getPlay_type()));
                 }
 //                heartBeatJson.setMac(DeviceUtil.getMac());
                 heartBeatJson.setMac("e558779714542319");
-                L.test("heartBeatJson:"+heartBeatJson.toString());
+                L.test("heartBeatJson:" + heartBeatJson.toString());
                 mainPresenter.fetchHeartbeat(heartBeatJson.toString());
                 break;
         }
@@ -197,7 +205,7 @@ public class MainActivity extends BaseActivity implements MediaPlayer.OnPrepared
     @Override
     public void onCompletion(MediaPlayer mediaPlayer) {
         L.d(TAG, "onCompletion");
-        isPlaying=false;
+        isPlaying = false;
     }
 
     /**
@@ -244,19 +252,28 @@ public class MainActivity extends BaseActivity implements MediaPlayer.OnPrepared
 
     }
 
-    private void startDownload(String url) {
+    private void startDownload(List<PlanListInfo> planListInfos) {
+        isDownLoading = true;
+        tv_process.setVisibility(View.VISIBLE);
         mTaskList.clear();
-        File file = new File(TConst.getApkDir(), "test");
-        if (!file.exists()) {
-            BaseDownloadTask task = FileDownloader.getImpl().create(url)
-                    .setPath(TConst.getApkDir()+ "test");
-            mTaskList.add(task);
+        for (PlanListInfo info : planListInfos) {
+            File file = new File(TConst.getApkDir(), info.getFilename());
+            if (!file.exists()) {
+                BaseDownloadTask task = FileDownloader.getImpl().create(info.getURL())
+                        .setPath(TConst.getApkDir() + info.getFilename());
+                mTaskList.add(task);
+            }
+        }
+        if (mTaskList.size() == 0) {
+            //下载完成
+            isDownLoading = false;
+            tv_process.setVisibility(View.GONE);
         }
         DownloadQueueHelper.getInstance().downloadSequentially(mTaskList);
         DownloadQueueHelper.getInstance().setOnDownloadListener(new DownloadQueueHelper.OnDownloadListener() {
             @Override
             public void onDownloadComplete(BaseDownloadTask task) {
-                L.test("下载完成");
+                L.test("Complete");
             }
 
             @Override
@@ -269,12 +286,14 @@ public class MainActivity extends BaseActivity implements MediaPlayer.OnPrepared
                 if (task == null) {
                     return;
                 }
+                tv_process.setText(task.getFilename() + "  " + (int) ((float) soFarBytes / totalBytes * 100) + "% 文件下载中...");
                 L.test((int) ((float) soFarBytes / totalBytes * 100) + "% 文件加载中...");
             }
 
             @Override
             public void onDownloadTaskOver() {
-                L.test("队列内所有文件下载完成");
+                L.test("下载完成");
+                tv_process.setVisibility(View.GONE);
             }
         });
     }
@@ -284,7 +303,7 @@ public class MainActivity extends BaseActivity implements MediaPlayer.OnPrepared
         new Handler().postDelayed(new Runnable() {
             @Override
             public void run() {
-                if (isSurfaceCreated&&adModelList!=null&&adModelList.size()>0)
+                if (isSurfaceCreated && adModelList != null && adModelList.size() > 0)
                     play(adModelList.get(current_play));
             }
         }, 1000);
@@ -320,12 +339,13 @@ public class MainActivity extends BaseActivity implements MediaPlayer.OnPrepared
 
     @Override
     public void initViews() {
-        mainPresenter=new MainPresenter(this);
+        mainPresenter = new MainPresenter(this);
         tv_tips = findViewById(R.id.tv_tips);
+        tv_process = findViewById(R.id.tv_process);
         lin_mode1 = findViewById(R.id.lin_mode);
         iv_pic = findViewById(R.id.iv_pic);
         main_surf1 = findViewById(R.id.main_surf);
-        cameraView=findViewById(R.id.view_bottom);
+        cameraView = findViewById(R.id.view_bottom);
 //        cameraView.setPreviewResolution(CAMERA_VIEW_WIDTH,CAMERA_VIEW_HEIGHT);
     }
 
@@ -336,52 +356,51 @@ public class MainActivity extends BaseActivity implements MediaPlayer.OnPrepared
         tv_tips.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                startDownload("http://minik.beidousat.com:2800/data/song/yc1/10830920.mp4");
                 showSetting();
             }
         });
         cameraView.setPreviewCallback(new CameraView.PreviewCallback() {
-            @Override public void onGetYuvFrame(byte[] data) {
+            @Override
+            public void onGetYuvFrame(byte[] data) {
                 temp = data;
-                Log.e("lin","===lin===>  onGetYuvFrame");
+                Log.e("lin", "===lin===>  onGetYuvFrame");
             }
         });
     }
 
     @Override
     public void initData() {
-        initPlan(getDefPlan());
+        initPlan(null);
         initPlayer();
 //        cameraView.startCamera();
     }
 
     private PlanInfo getDefPlan() {
-        PlanInfo planInfo=new PlanInfo();
+        PlanInfo planInfo = new PlanInfo();
         List<ADModel> list_Ad;
         list_Ad = Arrays.asList(
-                new ADModel("1", 2, R.drawable.pic01, Uri.parse("android.resource://" + getPackageName() + "/" + R.raw.vedio01)),
-                new ADModel("2", 2, R.drawable.pic02, Uri.parse("android.resource://" + getPackageName() + "/" + R.raw.vedio02)),
-                new ADModel("3", 2, R.drawable.pic03, Uri.parse("android.resource://" + getPackageName() + "/" + R.raw.vedio03)),
-                new ADModel("4", 2, R.drawable.pic04, Uri.parse("android.resource://" + getPackageName() + "/" + R.raw.vedio04)),
-                new ADModel("5", 2, R.drawable.pic05, Uri.parse("android.resource://" + getPackageName() + "/" + R.raw.vedio05)),
-                new ADModel("6", 2, R.drawable.pic06, Uri.parse("android.resource://" + getPackageName() + "/" + R.raw.vedio06)),
-                new ADModel("7", 2, R.drawable.pic07, Uri.parse("android.resource://" + getPackageName() + "/" + R.raw.vedio07)),
-                new ADModel("8", 2, R.drawable.pic08, Uri.parse("android.resource://" + getPackageName() + "/" + R.raw.vedio08)),
-                new ADModel("9", 2, R.drawable.pic09, Uri.parse("android.resource://" + getPackageName() + "/" + R.raw.vedio09)),
-                new ADModel("10", 2, R.drawable.pic10, Uri.parse("android.resource://" + getPackageName() + "/" + R.raw.vedio10))
-
+                new ADModel("1", 2, String.valueOf(R.drawable.pic01), String.valueOf(Uri.parse("android.resource://" + getPackageName() + "/" + R.raw.vedio01))),
+                new ADModel("1", 2, String.valueOf(R.drawable.pic02), String.valueOf(Uri.parse("android.resource://" + getPackageName() + "/" + R.raw.vedio01))),
+                new ADModel("1", 2, String.valueOf(R.drawable.pic03), String.valueOf(Uri.parse("android.resource://" + getPackageName() + "/" + R.raw.vedio01))),
+                new ADModel("1", 2, String.valueOf(R.drawable.pic04), String.valueOf(Uri.parse("android.resource://" + getPackageName() + "/" + R.raw.vedio01))),
+                new ADModel("1", 2, String.valueOf(R.drawable.pic05), String.valueOf(Uri.parse("android.resource://" + getPackageName() + "/" + R.raw.vedio01))),
+                new ADModel("1", 2, String.valueOf(R.drawable.pic01), String.valueOf(Uri.parse("android.resource://" + getPackageName() + "/" + R.raw.vedio01))),
+                new ADModel("1", 2, String.valueOf(R.drawable.pic01), String.valueOf(Uri.parse("android.resource://" + getPackageName() + "/" + R.raw.vedio01))),
+                new ADModel("1", 2, String.valueOf(R.drawable.pic01), String.valueOf(Uri.parse("android.resource://" + getPackageName() + "/" + R.raw.vedio01))),
+                new ADModel("1", 2, String.valueOf(R.drawable.pic01), String.valueOf(Uri.parse("android.resource://" + getPackageName() + "/" + R.raw.vedio01))),
+                new ADModel("1", 2, String.valueOf(R.drawable.pic01), String.valueOf(Uri.parse("android.resource://" + getPackageName() + "/" + R.raw.vedio01)))
         );
         planInfo.setPlanID("0");
         planInfo.setAdModelList(list_Ad);
         planInfo.setSecond(20);
         planInfo.setTotal(4);
-        L.test("planinfo:"+planInfo.toString());
+        L.test("planinfo:" + planInfo.toString());
         return planInfo;
     }
 
 
-    private void initPlan(PlanInfo planInfo){
-        if(planInfo!=null&&!TextUtils.isEmpty(planInfo.getPlanID())&&planInfo.getAdModelList()!=null&&planInfo.getAdModelList().size()>0) {
+    private void initPlan(PlanInfo planInfo) {
+        if (planInfo != null && !TextUtils.isEmpty(planInfo.getPlanID()) && planInfo.getAdModelList() != null && planInfo.getAdModelList().size() > 0) {
             cur_planID = planInfo.getPlanID();
             syncTime = planInfo.getTotal();
             nextTime = planInfo.getSecond();
@@ -389,6 +408,7 @@ public class MainActivity extends BaseActivity implements MediaPlayer.OnPrepared
         }
         startScreenTimer();
     }
+
     @Override
     public void loadDataWhenOnResume() {
 
@@ -398,7 +418,6 @@ public class MainActivity extends BaseActivity implements MediaPlayer.OnPrepared
     public void cancelLoadingRequest() {
 
     }
-
 
 
     @Override
@@ -421,13 +440,13 @@ public class MainActivity extends BaseActivity implements MediaPlayer.OnPrepared
                 HeartbeatInfo heartbeatInfo = gson.fromJson(user, HeartbeatInfo.class);
                 heartbeatInfoArrayList.add(heartbeatInfo);
             }
-            String newPlanId=heartbeatInfoArrayList.get(0).getNewPlanID();
-            if(!TextUtils.isEmpty(newPlanId)&&!newPlanId.equals(cur_planID)){
-                GetPlanJson getPlanJson=new GetPlanJson();
-                getPlanJson.setPlanID(newPlanId);
+             new_planID = heartbeatInfoArrayList.get(0).getNewPlanID();
+            if (!TextUtils.isEmpty(new_planID) && !new_planID.equals(cur_planID)) {
+                GetPlanJson getPlanJson = new GetPlanJson();
+                getPlanJson.setPlanID(new_planID);
                 getPlanJson.setMac("e558779714542319");
                 L.test(getPlanJson.toString());
-            mainPresenter.fetchPlan(getPlanJson.toString());
+                mainPresenter.fetchPlan(getPlanJson.toString());
             }
         } catch (IOException e) {
             e.printStackTrace();
@@ -448,9 +467,9 @@ public class MainActivity extends BaseActivity implements MediaPlayer.OnPrepared
                 PlanforResult planforResult = gson.fromJson(user, PlanforResult.class);
                 planforResultArrayList.add(planforResult);
             }
-            int profileID=planforResultArrayList.get(0).getProfileID();
+            int profileID = planforResultArrayList.get(0).getProfileID();
             //    getPlaylist/{"playlistID":"36","total":"30","mac":"e558779714542319"}
-            PlanlistJson planlistJson=new PlanlistJson();
+            PlanlistJson planlistJson = new PlanlistJson();
             planlistJson.setPlaylistID(String.valueOf(profileID));
             planlistJson.setMac("e558779714542319");
             L.test(planlistJson.toString());
@@ -467,16 +486,46 @@ public class MainActivity extends BaseActivity implements MediaPlayer.OnPrepared
             JsonParser parser = new JsonParser();
             JsonArray jsonArray = parser.parse(responseBody.string()).getAsJsonArray();
             Gson gson = new Gson();
-            ArrayList<PlanListInfo> planListInfoArrayList = new ArrayList<>();
-
+            Map<Integer, List<PlanListInfo>> maplist = new HashMap<>();
+            List<PlanListInfo> planListInfos = new ArrayList<>();
             //加强for循环遍历JsonArray
             for (JsonElement user : jsonArray) {
                 //使用GSON，直接转成Bean对象
                 PlanListInfo planListInfo = gson.fromJson(user, PlanListInfo.class);
-                planListInfoArrayList.add(planListInfo);
+                planListInfos.add(planListInfo);
+                List<PlanListInfo> temp = maplist.get(planListInfo.getGroupFlag());
+                if (temp == null) {
+                    temp = new ArrayList<>();
+                    temp.add(planListInfo);
+                    maplist.put(planListInfo.getGroupFlag(), temp);
+                } else {
+                    /*某个sku之前已经存放过了,则直接追加数据到原来的List里**/
+                    temp.add(planListInfo);
+                }
             }
-//            String url=URLEncoder.encode(planListInfoArrayList.get(0).getURL(), "utf-8");
-//            startDownload(url);
+            PlanInfo planInfo = new PlanInfo();
+            List<ADModel> adModelList = new ArrayList<>();
+            for (Integer i : maplist.keySet()) {
+                List<PlanListInfo> plan = maplist.get(i);
+                ADModel adModel = new ADModel();
+                for (PlanListInfo data : plan) {
+                    if (data.getFileType().equals("PNG")) {
+                        adModel.setID(String.valueOf(data.getGroupFlag()));
+                        adModel.setImage_url(data.getURL());
+                        adModel.setPlay_type(2);
+                    } else if (data.getFileType().equals("AVI")) {
+                        adModel.setID(String.valueOf(data.getGroupFlag()));
+                        adModel.setVideo_url(data.getURL());
+                        adModel.setPlay_type(2);
+                    }
+                }
+                adModelList.add(adModel);
+            }
+            planInfo.setSecond(20);
+            planInfo.setTotal(4);
+            planInfo.setPlanID(new_planID);
+            planInfo.setAdModelList(adModelList);
+            startDownload(planListInfos);
 //            L.test("url:"+url);
         } catch (IOException e) {
             e.printStackTrace();
@@ -523,14 +572,15 @@ public class MainActivity extends BaseActivity implements MediaPlayer.OnPrepared
 //            L.d("文件不存在");
 //        }
     }
+
     public void showSetting() {
         if ((System.currentTimeMillis() - mExitTime) > MAX_EXIT_INTERVAL) {
             mExitTime = System.currentTimeMillis();
         } else {
-            if(settingDialog==null){
-                settingDialog=new SettingDialog();
+            if (settingDialog == null) {
+                settingDialog = new SettingDialog();
             }
-            if(!settingDialog.isAdded()) {
+            if (!settingDialog.isAdded()) {
                 settingDialog.show(getSupportFragmentManager(), "setting");
             }
         }

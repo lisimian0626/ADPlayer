@@ -1,23 +1,34 @@
 package com.example.administrator.myapplication.evenbus;
 
-import com.example.administrator.myapplication.model.ADModel;
-
 public class PlayerEvent {
 
-    public ADModel adModel;
-    public static final int TYPE_UPDATE = 0;
-    public static final int TYPE_UPDATE_PROGRESS = 1;
-    public static final int TYPE_UPDATE_FAILURE = 2;
+    private  int id;
+    private  Object data;
 
-    public static PlayerEvent getEvent(ADModel adModel) {
-        return new PlayerEvent(adModel);
+    public static final int TYPE_DOWNLOADCOMPLITE = 0;
+    protected PlayerEvent(int id) {
+        this.id = id;
     }
 
-    protected PlayerEvent() {
+    protected PlayerEvent(int id, Object data) {
+        this.id = id;
+        this.data = data;
     }
 
-    protected PlayerEvent(ADModel adModel) {
-        this.adModel = adModel;
+    public int getId() {
+        return id;
+    }
+
+    public void setId(int id) {
+        this.id = id;
+    }
+
+    public Object getData() {
+        return data;
+    }
+
+    public void setData(Object data) {
+        this.data = data;
     }
 
 }

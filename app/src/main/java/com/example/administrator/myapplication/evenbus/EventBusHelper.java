@@ -1,5 +1,7 @@
 package com.example.administrator.myapplication.evenbus;
 
+import com.example.administrator.myapplication.model.PlanListInfo;
+
 import org.greenrobot.eventbus.EventBus;
 
 /**
@@ -30,8 +32,8 @@ public class EventBusHelper {
 //        EventBus.getDefault().post(event);
 //    }
 
-    public static void sendPlayEvent() {
-        EventBus.getDefault().post(new PlayerEvent());
+    public static void sendDownComplite() {
+        EventBus.getDefault().post(new PlayerEvent(PlayerEvent.TYPE_DOWNLOADCOMPLITE, ""));
     }
 
 
