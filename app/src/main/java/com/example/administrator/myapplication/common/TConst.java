@@ -49,6 +49,28 @@ public class TConst {
         public static final int REUQET_NOT_EXIST = 404; //请求不存在
     }
 
+    public static File getFileByUrl(String url) {
+        try {
+            int indexOf = url.indexOf("/");
+            String path = url.substring(indexOf, url.length());
+            L.d( "path==" + path);
+
+            File file = new File(getApkDir() + path);
+            L.d("FilePath=="+file.getAbsolutePath());
+
+            if (file.exists()) {
+                return file;
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        }
+        return null;
+    }
+
+    public static String getFileNameByUrl(String url) {
+        return url.substring(url.lastIndexOf("/") + 1, url.length());
+    }
 
     public static String getApkDir() {
         String filepath = Environment.getExternalStorageDirectory()+APP_ROOT_DIR;

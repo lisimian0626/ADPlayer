@@ -64,5 +64,6 @@ dependencies {
     api 'com.tencent.bugly:nativecrashreport:latest.release'
     //其中latest.release指代最新Bugly NDK版本号，也可以指定明确的版本号，例如3.0
     api 'com.liulishuo.filedownloader:library:1.7.4'
+    api 'com.github.bumptech.glide:glide:4.7.1'
     implementation files('libs/smdt.jar')
 }

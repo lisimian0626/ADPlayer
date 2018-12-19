@@ -1,6 +1,5 @@
 package com.example.administrator.myapplication;
 
-import android.app.smdt.SmdtManager;
 import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.Handler;
@@ -15,11 +14,13 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.bumptech.glide.Glide;
 import com.example.administrator.myapplication.base.BaseActivity;
 import com.example.administrator.myapplication.bussiness.constract.MainConstract;
 import com.example.administrator.myapplication.bussiness.persent.MainPresenter;
 import com.example.administrator.myapplication.common.TConst;
 import com.example.administrator.myapplication.evenbus.BusEvent;
+import com.example.administrator.myapplication.evenbus.EventBusHelper;
 import com.example.administrator.myapplication.evenbus.EventBusId;
 import com.example.administrator.myapplication.evenbus.PlayerEvent;
 import com.example.administrator.myapplication.model.ADModel;
@@ -33,10 +34,12 @@ import com.example.administrator.myapplication.model.PlanlistJson;
 import com.example.administrator.myapplication.net.download.DownloadQueueHelper;
 import com.example.administrator.myapplication.setting.SettingDialog;
 import com.example.administrator.myapplication.utils.L;
+import com.example.administrator.myapplication.utils.PreferenceUtil;
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonParser;
+import com.google.gson.reflect.TypeToken;
 import com.liulishuo.filedownloader.BaseDownloadTask;
 import com.liulishuo.filedownloader.FileDownloader;
 
@@ -81,7 +84,7 @@ public class MainActivity extends BaseActivity implements MediaPlayer.OnPrepared
     private MainPresenter mainPresenter;
     private PlanInfo curPlanInfo;
     private String cur_planID,new_planID;
-    private SmdtManager smdt;
+//    private SmdtManager smdt;
 
     private void play(ADModel adModel) {
         stopPlayer();
@@ -101,19 +104,30 @@ public class MainActivity extends BaseActivity implements MediaPlayer.OnPrepared
             }
             mediaPlayer.start();
         } else {
-            try {
-                open(Uri.parse(adModel.getVideo_url()));
-            } catch (IOException e) {
-                e.printStackTrace();
+            File media_file = TConst.getFileByUrl(adModel.getVideo_url());
+            if(media_file.exists()){
+                try {
+                    mediaPlayer.setDataSource(media_file.getAbsolutePath());
+                    mediaPlayer.setDisplay(main_surf1.getHolder());
+                    mediaPlayer.prepareAsync();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }else{
+                startDownload(adModel.getVideo_url());
             }
         }
         switch (adModel.getPlay_type()) {
             case 1:
                 break;
             case 2:
-
-                iv_pic.setImageResource(Integer.valueOf(adModel.getVideo_url()));
-                mediaPlayer.setDisplay(main_surf1.getHolder());
+                File image_file = TConst.getFileByUrl(adModel.getImage_url());
+                if(image_file.exists()) {
+                    Glide.with(this).load(image_file).into(iv_pic);
+                }else{
+                    startDownload(adModel.getImage_url());
+                }
+//                iv_pic.setImageResource(Integer.valueOf(adModel.getVideo_url()));
                 break;
         }
         cur_ADId = adModel.getID();
@@ -163,11 +177,19 @@ public class MainActivity extends BaseActivity implements MediaPlayer.OnPrepared
     public void onPlayerEvent(PlayerEvent event) {
         switch (event.getId()) {
             case PlayerEvent.TYPE_DOWNLOADCOMPLITE:
+                cur_planID=new_planID;
+                String jsonMeal = PreferenceUtil.getString(MainActivity.this, "planInfo", "");
+                if (!TextUtils.isEmpty(jsonMeal)) {
+                    Gson gson = new Gson();
+                    PlanInfo planInfo = gson.fromJson(jsonMeal,PlanInfo.class);
+                    if(planInfo!=null&&planInfo.getAdModelList().size()>0){
+                        initPlan(planInfo);
+                    }
+                }
+
                 break;
         }
-//        BaseDownloadTask task = FileDownloader.getImpl().create(mSong.getMp3FilePath())
-//                .setPath(Constant.File.getMusicDir()+ mSong.getMusicFilename());
-//        mTaskList.add(task);
+
     }
 
     @Subscribe(threadMode = ThreadMode.MAIN)
@@ -257,7 +279,7 @@ public class MainActivity extends BaseActivity implements MediaPlayer.OnPrepared
 
     }
 
-    private void startDownload(List<PlanListInfo> planListInfos) {
+    private void startDownload(final List<PlanListInfo> planListInfos) {
         isDownLoading = true;
         tv_process.setVisibility(View.VISIBLE);
         mTaskList.clear();
@@ -283,6 +305,7 @@ public class MainActivity extends BaseActivity implements MediaPlayer.OnPrepared
 
             @Override
             public void onDownloadTaskError(BaseDownloadTask task, Throwable e) {
+                tv_process.setText(task.getFilename()+"   文件下载失败!");
                 L.test("加载文件失败,请重新下载！");
             }
 
@@ -291,18 +314,109 @@ public class MainActivity extends BaseActivity implements MediaPlayer.OnPrepared
                 if (task == null) {
                     return;
                 }
-                tv_process.setText(task.getFilename() + "  " + String.format("%.2f", (float) soFarBytes / totalBytes) + "% 文件下载中...");
+                tv_process.setText(task.getFilename()+"   文件下载中...");
+//                tv_process.setText(task.getFilename() + "  " + String.format("%.2f", (float) soFarBytes / totalBytes) + "% 文件下载中...");
                 L.test((soFarBytes / totalBytes) * 100 + "   "+"sofar:"+soFarBytes+"    total:"+totalBytes);
             }
 
             @Override
             public void onDownloadTaskOver() {
                 L.test("下载完成");
+                isDownLoading = false;
+                tv_process.setVisibility(View.GONE);
+                PreferenceUtil.setString(MainActivity.this,"planInfo",data2PlanInfo(planListInfos).toString());
+                EventBusHelper.sendDownComplite();
+            }
+        });
+    }
+    private void startDownload(String downloadUrl) {
+        if(TextUtils.isEmpty(downloadUrl)){
+            return;
+        }
+        isDownLoading = true;
+        tv_process.setVisibility(View.VISIBLE);
+        mTaskList.clear();
+        File file = TConst.getFileByUrl(downloadUrl);
+        if(!file.exists()){
+            BaseDownloadTask task = FileDownloader.getImpl().create(downloadUrl)
+                    .setPath(TConst.getApkDir() + TConst.getFileNameByUrl(downloadUrl));
+            mTaskList.add(task);
+        }
+
+        if (mTaskList.size() == 0) {
+            //下载完成
+            isDownLoading = false;
+            tv_process.setVisibility(View.GONE);
+        }
+        DownloadQueueHelper.getInstance().downloadSequentially(mTaskList);
+        DownloadQueueHelper.getInstance().setOnDownloadListener(new DownloadQueueHelper.OnDownloadListener() {
+            @Override
+            public void onDownloadComplete(BaseDownloadTask task) {
+                L.test("Complete");
+            }
+
+            @Override
+            public void onDownloadTaskError(BaseDownloadTask task, Throwable e) {
+                tv_process.setText(task.getFilename()+"   文件下载失败!");
+                L.test("加载文件失败,请重新下载！");
+            }
+
+            @Override
+            public void onDownloadProgress(BaseDownloadTask task, int soFarBytes, int totalBytes) {
+                if (task == null) {
+                    return;
+                }
+                tv_process.setText(task.getFilename()+"   文件下载中...");
+//                tv_process.setText(task.getFilename() + "  " + String.format("%.2f", (float) soFarBytes / totalBytes) + "% 文件下载中...");
+                L.test((soFarBytes / totalBytes) * 100 + "   "+"sofar:"+soFarBytes+"    total:"+totalBytes);
+            }
+
+            @Override
+            public void onDownloadTaskOver() {
+                L.test("下载完成");
+                isDownLoading = false;
                 tv_process.setVisibility(View.GONE);
             }
         });
     }
-
+    private PlanInfo data2PlanInfo(List<PlanListInfo> planListInfos){
+        Map<Integer, List<PlanListInfo>> maplist = new HashMap<>();
+        for (PlanListInfo planListInfo : planListInfos) {
+            //使用GSON，直接转成Bean对象
+            List<PlanListInfo> temp = maplist.get(planListInfo.getGroupFlag());
+            if (temp == null) {
+                temp = new ArrayList<>();
+                temp.add(planListInfo);
+                maplist.put(planListInfo.getGroupFlag(), temp);
+            } else {
+                /*某个sku之前已经存放过了,则直接追加数据到原来的List里**/
+                temp.add(planListInfo);
+            }
+        }
+        PlanInfo planInfo = new PlanInfo();
+        List<ADModel> adModelList = new ArrayList<>();
+        for (Integer i : maplist.keySet()) {
+            List<PlanListInfo> plan = maplist.get(i);
+            ADModel adModel = new ADModel();
+            for (PlanListInfo data : plan) {
+                if (data.getFileType().equals("PNG")) {
+                    adModel.setID(String.valueOf(data.getGroupFlag()));
+                    adModel.setImage_url(data.getURL());
+                    adModel.setPlay_type(2);
+                } else if (data.getFileType().equals("AVI")) {
+                    adModel.setID(String.valueOf(data.getGroupFlag()));
+                    adModel.setVideo_url(data.getURL());
+                    adModel.setPlay_type(2);
+                }
+            }
+            adModelList.add(adModel);
+        }
+        planInfo.setSecond(20);
+        planInfo.setTotal(4);
+        planInfo.setPlanID(new_planID);
+        planInfo.setAdModelList(adModelList);
+        return planInfo;
+    }
 
     private void play() {
         new Handler().postDelayed(new Runnable() {
@@ -374,7 +488,17 @@ public class MainActivity extends BaseActivity implements MediaPlayer.OnPrepared
 
     @Override
     public void initData() {
-        initPlan(null);
+        startScreenTimer();
+        String planjson=PreferenceUtil.getString(MainActivity.this,"planInfo","");
+        if (!TextUtils.isEmpty(planjson)) {
+            Gson gson = new Gson();
+            PlanInfo planInfo = gson.fromJson(planjson,PlanInfo.class);
+            if(planInfo!=null&&planInfo.getAdModelList().size()>0){
+                initPlan(planInfo);
+            }
+        }else{
+            iv_pic.setImageResource(R.drawable.ad_corner_default);
+        }
         initPlayer();
 //        cameraView.startCamera();
     }
@@ -410,7 +534,7 @@ public class MainActivity extends BaseActivity implements MediaPlayer.OnPrepared
             nextTime = planInfo.getSecond();
             adModelList = planInfo.getAdModelList();
         }
-        startScreenTimer();
+
     }
     @Override
     public void loadDataWhenOnResume() {
@@ -490,46 +614,16 @@ public class MainActivity extends BaseActivity implements MediaPlayer.OnPrepared
             JsonParser parser = new JsonParser();
             JsonArray jsonArray = parser.parse(responseBody.string()).getAsJsonArray();
             Gson gson = new Gson();
-            Map<Integer, List<PlanListInfo>> maplist = new HashMap<>();
             List<PlanListInfo> planListInfos = new ArrayList<>();
             //加强for循环遍历JsonArray
             for (JsonElement user : jsonArray) {
                 //使用GSON，直接转成Bean对象
                 PlanListInfo planListInfo = gson.fromJson(user, PlanListInfo.class);
                 planListInfos.add(planListInfo);
-                List<PlanListInfo> temp = maplist.get(planListInfo.getGroupFlag());
-                if (temp == null) {
-                    temp = new ArrayList<>();
-                    temp.add(planListInfo);
-                    maplist.put(planListInfo.getGroupFlag(), temp);
-                } else {
-                    /*某个sku之前已经存放过了,则直接追加数据到原来的List里**/
-                    temp.add(planListInfo);
-                }
             }
-            PlanInfo planInfo = new PlanInfo();
-            List<ADModel> adModelList = new ArrayList<>();
-            for (Integer i : maplist.keySet()) {
-                List<PlanListInfo> plan = maplist.get(i);
-                ADModel adModel = new ADModel();
-                for (PlanListInfo data : plan) {
-                    if (data.getFileType().equals("PNG")) {
-                        adModel.setID(String.valueOf(data.getGroupFlag()));
-                        adModel.setImage_url(data.getURL());
-                        adModel.setPlay_type(2);
-                    } else if (data.getFileType().equals("AVI")) {
-                        adModel.setID(String.valueOf(data.getGroupFlag()));
-                        adModel.setVideo_url(data.getURL());
-                        adModel.setPlay_type(2);
-                    }
-                }
-                adModelList.add(adModel);
+            if(!isDownLoading){
+                startDownload(planListInfos);
             }
-            planInfo.setSecond(20);
-            planInfo.setTotal(4);
-            planInfo.setPlanID(new_planID);
-            planInfo.setAdModelList(adModelList);
-            startDownload(planListInfos);
 //            L.test("url:"+url);
         } catch (IOException e) {
             e.printStackTrace();
@@ -590,15 +684,15 @@ public class MainActivity extends BaseActivity implements MediaPlayer.OnPrepared
         }
     }
 
-    private boolean SetHdmi(Boolean enable) {
-        boolean ret1 = smdt.setHdmiInAudioEnable(getApplicationContext(), enable);
-        if (ret1) {
-            Toast.makeText(getApplicationContext(), "hdmi audio open success!", Toast.LENGTH_SHORT).show();
-        } else {
-            Toast.makeText(getApplicationContext(), "hdmi audio open failed!", Toast.LENGTH_SHORT).show();
-        }
-        return ret1;
-    }
+//    private boolean SetHdmi(Boolean enable) {
+//        boolean ret1 = smdt.setHdmiInAudioEnable(getApplicationContext(), enable);
+//        if (ret1) {
+//            Toast.makeText(getApplicationContext(), "hdmi audio open success!", Toast.LENGTH_SHORT).show();
+//        } else {
+//            Toast.makeText(getApplicationContext(), "hdmi audio open failed!", Toast.LENGTH_SHORT).show();
+//        }
+//        return ret1;
+//    }
 
 
 }
