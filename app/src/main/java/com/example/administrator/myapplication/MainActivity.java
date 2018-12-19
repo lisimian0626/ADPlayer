@@ -206,6 +206,8 @@ public class MainActivity extends BaseActivity implements MediaPlayer.OnPrepared
                 play();
                 break;
             case EventBusId.nextTime:
+                if(adModelList==null)
+                    return;
                 if (current_play < adModelList.size() - 1) {
                     current_play++;
                 } else {
