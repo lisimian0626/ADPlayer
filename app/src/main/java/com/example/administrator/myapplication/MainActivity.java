@@ -91,6 +91,7 @@ public class MainActivity extends BaseActivity implements MediaPlayer.OnPrepared
         if (adModel == null) {
             return;
         }
+
         cur_Ad = adModel;
         tv_tips.setText("当前播放：" + "广告" + adModel.getID() + "|" + "模板" + adModel.getPlay_type());
         iv_pic.setVisibility(adModel.getPlay_type() == 2 ? View.VISIBLE : View.GONE);
@@ -109,7 +110,7 @@ public class MainActivity extends BaseActivity implements MediaPlayer.OnPrepared
                 try {
                     mediaPlayer.setDataSource(media_file.getAbsolutePath());
                     mediaPlayer.setDisplay(main_surf1.getHolder());
-                    mediaPlayer.prepareAsync();
+                    mediaPlayer.prepare();
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
@@ -152,6 +153,7 @@ public class MainActivity extends BaseActivity implements MediaPlayer.OnPrepared
 
     private void CreateSurfaceView() {
 //        main_surf2.getHolder().setType(SurfaceHolder.SURFACE_TYPE_PUSH_BUFFERS);
+        main_surf1.setVisibility(View.VISIBLE);
         main_surf1.getHolder().setKeepScreenOn(true);
         main_surf1.getHolder().addCallback(new SurfaceCallback());
     }
@@ -184,6 +186,7 @@ public class MainActivity extends BaseActivity implements MediaPlayer.OnPrepared
                     PlanInfo planInfo = gson.fromJson(jsonMeal,PlanInfo.class);
                     if(planInfo!=null&&planInfo.getAdModelList().size()>0){
                         initPlan(planInfo);
+                        play();
                     }
                 }
 
@@ -490,43 +493,46 @@ public class MainActivity extends BaseActivity implements MediaPlayer.OnPrepared
 
     @Override
     public void initData() {
+
         startScreenTimer();
         String planjson=PreferenceUtil.getString(MainActivity.this,"planInfo","");
         if (!TextUtils.isEmpty(planjson)) {
+            initPlayer();
             Gson gson = new Gson();
             PlanInfo planInfo = gson.fromJson(planjson,PlanInfo.class);
             if(planInfo!=null&&planInfo.getAdModelList().size()>0){
                 initPlan(planInfo);
             }
+            play();
         }else{
             iv_pic.setImageResource(R.drawable.ad_corner_default);
         }
-        initPlayer();
+
 //        cameraView.startCamera();
     }
 
-    private PlanInfo getDefPlan() {
-        PlanInfo planInfo = new PlanInfo();
-        List<ADModel> list_Ad;
-        list_Ad = Arrays.asList(
-                new ADModel("1", 2, String.valueOf(R.drawable.pic01), String.valueOf(Uri.parse("android.resource://" + getPackageName() + "/" + R.raw.vedio01))),
-                new ADModel("1", 2, String.valueOf(R.drawable.pic02), String.valueOf(Uri.parse("android.resource://" + getPackageName() + "/" + R.raw.vedio01))),
-                new ADModel("1", 2, String.valueOf(R.drawable.pic03), String.valueOf(Uri.parse("android.resource://" + getPackageName() + "/" + R.raw.vedio01))),
-                new ADModel("1", 2, String.valueOf(R.drawable.pic04), String.valueOf(Uri.parse("android.resource://" + getPackageName() + "/" + R.raw.vedio01))),
-                new ADModel("1", 2, String.valueOf(R.drawable.pic05), String.valueOf(Uri.parse("android.resource://" + getPackageName() + "/" + R.raw.vedio01))),
-                new ADModel("1", 2, String.valueOf(R.drawable.pic01), String.valueOf(Uri.parse("android.resource://" + getPackageName() + "/" + R.raw.vedio01))),
-                new ADModel("1", 2, String.valueOf(R.drawable.pic01), String.valueOf(Uri.parse("android.resource://" + getPackageName() + "/" + R.raw.vedio01))),
-                new ADModel("1", 2, String.valueOf(R.drawable.pic01), String.valueOf(Uri.parse("android.resource://" + getPackageName() + "/" + R.raw.vedio01))),
-                new ADModel("1", 2, String.valueOf(R.drawable.pic01), String.valueOf(Uri.parse("android.resource://" + getPackageName() + "/" + R.raw.vedio01))),
-                new ADModel("1", 2, String.valueOf(R.drawable.pic01), String.valueOf(Uri.parse("android.resource://" + getPackageName() + "/" + R.raw.vedio01)))
-        );
-        planInfo.setPlanID("0");
-        planInfo.setAdModelList(list_Ad);
-        planInfo.setSecond(20);
-        planInfo.setTotal(4);
-        L.test("planinfo:" + planInfo.toString());
-        return planInfo;
-    }
+//    private PlanInfo getDefPlan() {
+//        PlanInfo planInfo = new PlanInfo();
+//        List<ADModel> list_Ad;
+//        list_Ad = Arrays.asList(
+//                new ADModel("1", 2, String.valueOf(R.drawable.pic01), String.valueOf(Uri.parse("android.resource://" + getPackageName() + "/" + R.raw.vedio01))),
+//                new ADModel("1", 2, String.valueOf(R.drawable.pic02), String.valueOf(Uri.parse("android.resource://" + getPackageName() + "/" + R.raw.vedio01))),
+//                new ADModel("1", 2, String.valueOf(R.drawable.pic03), String.valueOf(Uri.parse("android.resource://" + getPackageName() + "/" + R.raw.vedio01))),
+//                new ADModel("1", 2, String.valueOf(R.drawable.pic04), String.valueOf(Uri.parse("android.resource://" + getPackageName() + "/" + R.raw.vedio01))),
+//                new ADModel("1", 2, String.valueOf(R.drawable.pic05), String.valueOf(Uri.parse("android.resource://" + getPackageName() + "/" + R.raw.vedio01))),
+//                new ADModel("1", 2, String.valueOf(R.drawable.pic01), String.valueOf(Uri.parse("android.resource://" + getPackageName() + "/" + R.raw.vedio01))),
+//                new ADModel("1", 2, String.valueOf(R.drawable.pic01), String.valueOf(Uri.parse("android.resource://" + getPackageName() + "/" + R.raw.vedio01))),
+//                new ADModel("1", 2, String.valueOf(R.drawable.pic01), String.valueOf(Uri.parse("android.resource://" + getPackageName() + "/" + R.raw.vedio01))),
+//                new ADModel("1", 2, String.valueOf(R.drawable.pic01), String.valueOf(Uri.parse("android.resource://" + getPackageName() + "/" + R.raw.vedio01))),
+//                new ADModel("1", 2, String.valueOf(R.drawable.pic01), String.valueOf(Uri.parse("android.resource://" + getPackageName() + "/" + R.raw.vedio01)))
+//        );
+//        planInfo.setPlanID("0");
+//        planInfo.setAdModelList(list_Ad);
+//        planInfo.setSecond(20);
+//        planInfo.setTotal(4);
+//        L.test("planinfo:" + planInfo.toString());
+//        return planInfo;
+//    }
 
 
     private void initPlan(PlanInfo planInfo) {

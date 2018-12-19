@@ -51,8 +51,7 @@ public class TConst {
 
     public static File getFileByUrl(String url) {
         try {
-            int indexOf = url.indexOf("/");
-            String path = url.substring(indexOf, url.length());
+            String path = url.substring(url.lastIndexOf("/") + 1, url.length());
             L.d( "path==" + path);
 
             File file = new File(getApkDir() + path);
