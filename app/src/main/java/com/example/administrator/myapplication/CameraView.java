@@ -15,7 +15,7 @@ public class CameraView extends SurfaceView implements SurfaceHolder.Callback, C
 
     private Camera mCamera;
 
-    private int mPreviewRotation = 90;
+    private int mPreviewRotation = 0;
     private int mCamId = Camera.CameraInfo.CAMERA_FACING_FRONT;
     private PreviewCallback mPrevCb;
     private byte[] mYuvPreviewFrame;
@@ -83,7 +83,7 @@ public class CameraView extends SurfaceView implements SurfaceHolder.Callback, C
             }
         }
 
-        mCamera.setParameters(params);
+//        mCamera.setParameters(params);
 
         mCamera.setDisplayOrientation(mPreviewRotation);
 

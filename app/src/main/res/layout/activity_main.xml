@@ -46,7 +46,7 @@
             android:layout_height="0dp"
             android:layout_weight="850"
             android:layout_above="@+id/iv_pic"
-            android:visibility="gone"
+
             />
         <ImageView
             android:id="@+id/iv_pic"

@@ -277,6 +277,7 @@ public class MainActivity extends BaseActivity implements MediaPlayer.OnPrepared
     protected void onResume() {
         super.onResume();
 //        hideToobar();
+
         play();
 //        L.d("mac:"+DeviceUtil.getCupChipID());
 
@@ -508,7 +509,7 @@ public class MainActivity extends BaseActivity implements MediaPlayer.OnPrepared
             iv_pic.setImageResource(R.drawable.ad_corner_default);
         }
 
-//        cameraView.startCamera();
+        cameraView.startCamera();
     }
 
 //    private PlanInfo getDefPlan() {
