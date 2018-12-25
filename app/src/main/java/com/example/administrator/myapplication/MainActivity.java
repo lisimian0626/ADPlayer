@@ -98,26 +98,34 @@ public class MainActivity extends BaseActivity implements MediaPlayer.OnPrepared
         if (mediaPlayer == null) {
             CreateMediaPlayer();
         }
-        if (cur_ADId.equals(adModel.getID())) {
-            if (curIndex > 0) {
-                mediaPlayer.seekTo(curIndex);
-                curIndex = 0;
-            }
-            mediaPlayer.start();
-        } else {
+//        if (cur_ADId.equals(adModel.getID())) {
+//            if (curIndex > 0) {
+////                mediaPlayer.reset();
+//                mediaPlayer.seekTo(curIndex);
+//                curIndex = 0;
+//            }
+////            try {
+////                mediaPlayer.prepare();
+////            } catch (IOException e) {
+////                e.printStackTrace();
+////            }
+////            mediaPlayer.start();
+//        } else {
             File media_file = TConst.getFileByUrl(adModel.getVideo_url());
             if(media_file.exists()){
                 try {
+                    mediaPlayer.reset();
                     mediaPlayer.setDataSource(media_file.getAbsolutePath());
                     mediaPlayer.setDisplay(main_surf1.getHolder());
-                    mediaPlayer.prepare();
+                    mediaPlayer.setLooping(true);
+                    mediaPlayer.prepareAsync();
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
             }else{
                 startDownload(adModel.getVideo_url());
             }
-        }
+//        }
         switch (adModel.getPlay_type()) {
             case 1:
                 break;
@@ -245,9 +253,7 @@ public class MainActivity extends BaseActivity implements MediaPlayer.OnPrepared
     @Override
     protected void onRestart() {
         super.onRestart();
-        if (!isSurfaceCreated) {
-            CreateSurfaceView();
-        }
+
     }
 
     @Override
@@ -277,7 +283,9 @@ public class MainActivity extends BaseActivity implements MediaPlayer.OnPrepared
     protected void onResume() {
         super.onResume();
 //        hideToobar();
-
+        if (!isSurfaceCreated) {
+            CreateSurfaceView();
+        }
         play();
 //        L.d("mac:"+DeviceUtil.getCupChipID());
 
@@ -454,6 +462,7 @@ public class MainActivity extends BaseActivity implements MediaPlayer.OnPrepared
 
     @Override
     public void onPrepared(MediaPlayer mp) {
+        mediaPlayer.seekTo(curIndex);
         mediaPlayer.start();
     }
 
@@ -471,6 +480,7 @@ public class MainActivity extends BaseActivity implements MediaPlayer.OnPrepared
         iv_pic = findViewById(R.id.iv_pic);
         main_surf1 = findViewById(R.id.main_surf);
         cameraView=findViewById(R.id.view_bottom);
+        initPlayer();
 //        cameraView.setPreviewResolution(CAMERA_VIEW_WIDTH,CAMERA_VIEW_HEIGHT);
     }
 
@@ -498,7 +508,7 @@ public class MainActivity extends BaseActivity implements MediaPlayer.OnPrepared
         startScreenTimer();
         String planjson=PreferenceUtil.getString(MainActivity.this,"planInfo","");
         if (!TextUtils.isEmpty(planjson)) {
-            initPlayer();
+
             Gson gson = new Gson();
             PlanInfo planInfo = gson.fromJson(planjson,PlanInfo.class);
             if(planInfo!=null&&planInfo.getAdModelList().size()>0){
