@@ -98,6 +98,9 @@ public class MainActivity extends BaseActivity implements MediaPlayer.OnPrepared
         if (mediaPlayer == null) {
             CreateMediaPlayer();
         }
+        if (!isSurfaceCreated) {
+            CreateSurfaceView();
+        }
 //        if (cur_ADId.equals(adModel.getID())) {
 //            if (curIndex > 0) {
 ////                mediaPlayer.reset();
@@ -148,8 +151,7 @@ public class MainActivity extends BaseActivity implements MediaPlayer.OnPrepared
             mediaPlayer = null;
         }
         CreateMediaPlayer();
-        // 把输送给surfaceView的视频画面，直接显示到屏幕上,不要维持它自身的缓冲区
-        CreateSurfaceView();
+
     }
 
     private void CreateMediaPlayer() {
@@ -283,9 +285,9 @@ public class MainActivity extends BaseActivity implements MediaPlayer.OnPrepared
     protected void onResume() {
         super.onResume();
 //        hideToobar();
-        if (!isSurfaceCreated) {
-            CreateSurfaceView();
-        }
+//        if (!isSurfaceCreated) {
+//            CreateSurfaceView();
+//        }
         play();
 //        L.d("mac:"+DeviceUtil.getCupChipID());
 
@@ -456,7 +458,7 @@ public class MainActivity extends BaseActivity implements MediaPlayer.OnPrepared
     @Override
     public boolean onError(MediaPlayer mediaPlayer, int i, int i1) {
         stopPlayer();
-        initPlayer();
+//        initPlayer();
         return false;
     }
 
@@ -480,7 +482,7 @@ public class MainActivity extends BaseActivity implements MediaPlayer.OnPrepared
         iv_pic = findViewById(R.id.iv_pic);
         main_surf1 = findViewById(R.id.main_surf);
         cameraView=findViewById(R.id.view_bottom);
-        initPlayer();
+//        initPlayer();
 //        cameraView.setPreviewResolution(CAMERA_VIEW_WIDTH,CAMERA_VIEW_HEIGHT);
     }
 
@@ -515,9 +517,10 @@ public class MainActivity extends BaseActivity implements MediaPlayer.OnPrepared
                 initPlan(planInfo);
             }
             play();
-        }else{
-            iv_pic.setImageResource(R.drawable.ad_corner_default);
         }
+//        else{
+//            iv_pic.setImageResource(R.drawable.ad_corner_default);
+//        }
 
         cameraView.startCamera();
     }
