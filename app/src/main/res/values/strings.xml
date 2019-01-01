@@ -5,4 +5,6 @@
     <string name="set_auto_resume">退出自动恢复</string>
     <string name="set_auto_resume_dec">开启后,退出App自动恢复</string>
     <string name="set_close">关闭</string>
+
+    <string name="update_tip">版本升级</string>
 </resources>

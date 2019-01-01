@@ -64,7 +64,7 @@ public class PackageUtil {
         context.sendBroadcast(intent);
     }
 
-    public static void installApkByApi(Context context, File apkFile) {
+    public static void  installApkByApi(Context context, File apkFile) {
         Intent intent = new Intent(Intent.ACTION_VIEW);
         intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
         intent.setDataAndType(Uri.parse("file://" + apkFile.getAbsolutePath()),

@@ -85,4 +85,25 @@ public class MainPresenter extends CommonPresenter<MainConstract.MainView> imple
 
         addDispose(disposable);
     }
+
+    @Override
+    public void fetchApkInfo(String json) {
+        final String method = getMethodName();
+        Disposable disposable = mApiService.getApkInfo(json)
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(new Consumer<ResponseBody>() {
+                    @Override
+                    public void accept(ResponseBody responseBody) throws Exception {
+                        mView.OnGetApkInfo(responseBody);
+                    }
+                }, new AbsExceptionEngine() {
+                    @Override
+                    public void handMessage(String message) {
+                        mView.onFeedBack(false, method, message);
+                    }
+                });
+
+        addDispose(disposable);
+    }
 }

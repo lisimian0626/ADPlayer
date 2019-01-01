@@ -9,7 +9,7 @@ android {
         minSdkVersion 15
         targetSdkVersion 28
         versionCode 2
-        versionName "2.0"
+        versionName "V2.0_Beat"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
     }
     buildTypes {
@@ -23,21 +23,21 @@ android {
             outputFileName = "AD_Player-${variant.versionName}-${releaseTime()}.apk"
         }
     }
-//    signingConfigs {
-//        debug {
-//            storePassword 'Beidousat_Karaoke'                            //签名证书密码
-//            keyAlias "beidousat"                                         //别名
-//            keyPassword 'Beidousat_Karaoke'                              //别名密码
-//            storeFile file("../beidousat_keys.jks")
-//        }
-//
-//        release {
-//            storePassword 'Beidousat_Karaoke'                            //签名证书密码
-//            keyAlias "beidousat"                                         //别名
-//            keyPassword 'Beidousat_Karaoke'                              //别名密码
-//            storeFile file("../beidousat_keys.jks")
-//        }
-//    }
+    signingConfigs {
+        debug {
+            storePassword 'Beidousat_Karaoke'                            //签名证书密码
+            keyAlias "beidousat"                                         //别名
+            keyPassword 'Beidousat_Karaoke'                              //别名密码
+            storeFile file("../beidousat_keys.jks")
+        }
+
+        release {
+            storePassword 'Beidousat_Karaoke'                            //签名证书密码
+            keyAlias "beidousat"                                         //别名
+            keyPassword 'Beidousat_Karaoke'                              //别名密码
+            storeFile file("../beidousat_keys.jks")
+        }
+    }
 }
 
 dependencies {

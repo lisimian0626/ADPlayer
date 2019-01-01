@@ -31,9 +31,14 @@ import com.example.administrator.myapplication.model.PlanInfo;
 import com.example.administrator.myapplication.model.PlanListInfo;
 import com.example.administrator.myapplication.model.PlanforResult;
 import com.example.administrator.myapplication.model.PlanlistJson;
+import com.example.administrator.myapplication.model.VersionJson;
+import com.example.administrator.myapplication.model.VersionResult;
 import com.example.administrator.myapplication.net.download.DownloadQueueHelper;
 import com.example.administrator.myapplication.setting.SettingDialog;
+import com.example.administrator.myapplication.upgrade.dialog.DlgProgress;
+import com.example.administrator.myapplication.utils.DeviceUtil;
 import com.example.administrator.myapplication.utils.L;
+import com.example.administrator.myapplication.utils.PackageUtil;
 import com.example.administrator.myapplication.utils.PreferenceUtil;
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
@@ -52,6 +57,8 @@ import java.net.URL;
 import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -69,7 +76,7 @@ public class MainActivity extends BaseActivity implements MediaPlayer.OnPrepared
     //    private RelativeLayout layout_main;
     int current_play = 0;
     private String cur_ADId = "";
-    private TextView tv_tips, tv_process;
+    private TextView tv_version,tv_cupchip,tv_tips, tv_process;
     private boolean isSurfaceCreated = false;        //surface是否已经创建好
     private int curIndex = 0;
     private boolean isPlaying = false;
@@ -84,6 +91,7 @@ public class MainActivity extends BaseActivity implements MediaPlayer.OnPrepared
     private MainPresenter mainPresenter;
     private PlanInfo curPlanInfo;
     private String cur_planID,new_planID;
+    private DlgProgress dlgProgress;
 //    private SmdtManager smdt;
 
     private void play(ADModel adModel) {
@@ -235,6 +243,7 @@ public class MainActivity extends BaseActivity implements MediaPlayer.OnPrepared
                     heartBeatJson.setPlanID(String.valueOf(cur_Ad.getPlay_type()));
                 }
 //                heartBeatJson.setMac(DeviceUtil.getMac());
+                heartBeatJson.setVersionCode(String.valueOf(PackageUtil.getVersionCode(MainActivity.this)));
                 heartBeatJson.setMac("e558779714542319");
                 L.test("heartBeatJson:"+heartBeatJson.toString());
                 mainPresenter.fetchHeartbeat(heartBeatJson.toString());
@@ -285,9 +294,9 @@ public class MainActivity extends BaseActivity implements MediaPlayer.OnPrepared
     protected void onResume() {
         super.onResume();
 //        hideToobar();
-//        if (!isSurfaceCreated) {
-//            CreateSurfaceView();
-//        }
+        if (!isSurfaceCreated) {
+            CreateSurfaceView();
+        }
         play();
 //        L.d("mac:"+DeviceUtil.getCupChipID());
 
@@ -311,6 +320,7 @@ public class MainActivity extends BaseActivity implements MediaPlayer.OnPrepared
             //下载完成
             isDownLoading = false;
             tv_process.setVisibility(View.GONE);
+            EventBusHelper.sendDownComplite();
         }
         DownloadQueueHelper.getInstance().downloadSequentially(mTaskList);
         DownloadQueueHelper.getInstance().setOnDownloadListener(new DownloadQueueHelper.OnDownloadListener() {
@@ -340,7 +350,7 @@ public class MainActivity extends BaseActivity implements MediaPlayer.OnPrepared
                 L.test("下载完成");
                 isDownLoading = false;
                 tv_process.setVisibility(View.GONE);
-                PreferenceUtil.setString(MainActivity.this,"planInfo",data2PlanInfo(planListInfos).toString());
+
                 EventBusHelper.sendDownComplite();
             }
         });
@@ -427,6 +437,18 @@ public class MainActivity extends BaseActivity implements MediaPlayer.OnPrepared
             }
             adModelList.add(adModel);
         }
+        Collections.sort(adModelList, new Comparator<ADModel>() {
+            @Override
+            public int compare(ADModel adModel, ADModel t1) {
+                int i=0;
+                try {
+                    i=Integer.valueOf(adModel.getID())-Integer.valueOf(t1.getID());
+                }catch (Exception e){
+                    e.printStackTrace();
+                }
+                return i;
+            }
+        });
         planInfo.setSecond(20);
         planInfo.setTotal(4);
         planInfo.setPlanID(new_planID);
@@ -478,11 +500,29 @@ public class MainActivity extends BaseActivity implements MediaPlayer.OnPrepared
         mainPresenter=new MainPresenter(this);
         tv_tips = findViewById(R.id.tv_tips);
         tv_process = findViewById(R.id.tv_process);
+        tv_version=findViewById(R.id.tv_version);
+        tv_cupchip=findViewById(R.id.tv_cupchip);
         lin_mode1 = findViewById(R.id.lin_mode);
         iv_pic = findViewById(R.id.iv_pic);
         main_surf1 = findViewById(R.id.main_surf);
         cameraView=findViewById(R.id.view_bottom);
-//        initPlayer();
+        tv_version.setText(PackageUtil.getVersionName(MainActivity.this));
+        String Chip=DeviceUtil.getCupChipID();
+        if(!TextUtils.isEmpty(Chip)){
+            tv_cupchip.setText("SN:"+Chip.substring(Chip.length()-4,Chip.length()));
+        }
+        initPlayer();
+        startScreenTimer();
+        String planjson=PreferenceUtil.getString(MainActivity.this,"planInfo","");
+        if (!TextUtils.isEmpty(planjson)) {
+
+            Gson gson = new Gson();
+            PlanInfo planInfo = gson.fromJson(planjson,PlanInfo.class);
+            L.test(planInfo.toString());
+            if(planInfo!=null&&planInfo.getAdModelList().size()>0){
+                initPlan(planInfo);
+            }
+        }
 //        cameraView.setPreviewResolution(CAMERA_VIEW_WIDTH,CAMERA_VIEW_HEIGHT);
     }
 
@@ -490,7 +530,7 @@ public class MainActivity extends BaseActivity implements MediaPlayer.OnPrepared
     public void setListener() {
         MyApplication application = (MyApplication) getApplication();
         application.init();
-        tv_tips.setOnClickListener(new View.OnClickListener() {
+        tv_version.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 showSetting();
@@ -507,17 +547,7 @@ public class MainActivity extends BaseActivity implements MediaPlayer.OnPrepared
     @Override
     public void initData() {
 
-        startScreenTimer();
-        String planjson=PreferenceUtil.getString(MainActivity.this,"planInfo","");
-        if (!TextUtils.isEmpty(planjson)) {
 
-            Gson gson = new Gson();
-            PlanInfo planInfo = gson.fromJson(planjson,PlanInfo.class);
-            if(planInfo!=null&&planInfo.getAdModelList().size()>0){
-                initPlan(planInfo);
-            }
-            play();
-        }
 //        else{
 //            iv_pic.setImageResource(R.drawable.ad_corner_default);
 //        }
@@ -590,6 +620,15 @@ public class MainActivity extends BaseActivity implements MediaPlayer.OnPrepared
                 HeartbeatInfo heartbeatInfo = gson.fromJson(user, HeartbeatInfo.class);
                 heartbeatInfoArrayList.add(heartbeatInfo);
             }
+            String version=heartbeatInfoArrayList.get(0).getVersioncode();
+            if(Integer.valueOf(version)> PackageUtil.getVersionCode(MainActivity.this)){
+                L.test("服务器有新版本");
+                VersionJson versionJson=new VersionJson();
+                versionJson.setVersionCode(version);
+                L.test(versionJson.toString());
+                mainPresenter.fetchApkInfo(versionJson.toString());
+            }
+
              new_planID = heartbeatInfoArrayList.get(0).getNewPlanID();
             if (!TextUtils.isEmpty(new_planID) && !new_planID.equals(cur_planID)) {
                 GetPlanJson getPlanJson = new GetPlanJson();
@@ -643,9 +682,37 @@ public class MainActivity extends BaseActivity implements MediaPlayer.OnPrepared
                 PlanListInfo planListInfo = gson.fromJson(user, PlanListInfo.class);
                 planListInfos.add(planListInfo);
             }
+            PreferenceUtil.setString(MainActivity.this,"planInfo",data2PlanInfo(planListInfos).toString());
             if(!isDownLoading){
                 startDownload(planListInfos);
             }
+//            L.test("url:"+url);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    @Override
+    public void OnGetApkInfo(ResponseBody responseBody) {
+        try {
+            JsonParser parser = new JsonParser();
+            JsonArray jsonArray = parser.parse(responseBody.string()).getAsJsonArray();
+            Gson gson = new Gson();
+            List<VersionResult> versionResults = new ArrayList<>();
+            //加强for循环遍历JsonArray
+            for (JsonElement user : jsonArray) {
+                //使用GSON，直接转成Bean对象
+                VersionResult versionResult = gson.fromJson(user, VersionResult.class);
+                versionResults.add(versionResult);
+            }
+            if(dlgProgress==null){
+                dlgProgress = new DlgProgress(MainActivity.this);
+                dlgProgress.setTitle("版本升级");
+                dlgProgress.setTip("版本升级中，请勿关机...");
+                dlgProgress.show();
+                dlgProgress.startDownload(versionResults.get(0).getApkurl());
+            }
+
 //            L.test("url:"+url);
         } catch (IOException e) {
             e.printStackTrace();

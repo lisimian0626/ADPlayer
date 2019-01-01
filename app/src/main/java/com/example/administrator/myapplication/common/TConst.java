@@ -20,7 +20,7 @@ import java.util.List;
 public class TConst {
     private static final String APP_ROOT_DIR = "/ADPlayer/";
     private static final String APP_CACHE_DIR = APP_ROOT_DIR+"Cache/";
-
+    public static final String DOWN_APK_NAME="ADPlayer";
 
 ////    测试环境
     public static final String BASE_URL = "http://111.230.222.252:8981/";

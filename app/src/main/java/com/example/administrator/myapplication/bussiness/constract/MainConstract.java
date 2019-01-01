@@ -18,11 +18,13 @@ public interface MainConstract {
         void OnHeartbeat(ResponseBody responseBody);
         void OngetPlan(ResponseBody responseBody);
         void OnGetPlanList(ResponseBody responseBody);
+        void OnGetApkInfo(ResponseBody responseBody);
     }
     interface MainPresenter extends BasePresenter {
         void fetchHeartbeat(String json);
         void fetchPlan(String json);
         void fetctPlanList(String json);
+        void fetchApkInfo(String json);
     }
 
 }

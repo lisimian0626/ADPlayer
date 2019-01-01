@@ -30,4 +30,6 @@ public interface ApiService {
     @GET("/getPlaylist/{json}")
     Observable<ResponseBody> getPlaylist(@Path("json") String json);
 
+    @GET("/getApkurl/{json}")
+    Observable<ResponseBody> getApkInfo(@Path("json") String json);
 }
