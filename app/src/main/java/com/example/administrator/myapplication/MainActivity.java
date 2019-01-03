@@ -242,9 +242,9 @@ public class MainActivity extends BaseActivity implements MediaPlayer.OnPrepared
                     heartBeatJson.setAdID(cur_Ad.getID());
                     heartBeatJson.setPlanID(String.valueOf(cur_Ad.getPlay_type()));
                 }
-//                heartBeatJson.setMac(DeviceUtil.getMac());
+                heartBeatJson.setMac(DeviceUtil.getCupChipID());
                 heartBeatJson.setVersionCode(String.valueOf(PackageUtil.getVersionCode(MainActivity.this)));
-                heartBeatJson.setMac("e558779714542319");
+//                heartBeatJson.setMac("e558779714542319");
                 L.test("heartBeatJson:"+heartBeatJson.toString());
                 mainPresenter.fetchHeartbeat(heartBeatJson.toString());
                 break;
