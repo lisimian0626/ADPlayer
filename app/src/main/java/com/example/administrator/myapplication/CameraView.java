@@ -66,22 +66,7 @@ public class CameraView extends SurfaceView implements SurfaceHolder.Callback, C
 
         mCamera = Camera.open(mCamId);
 
-        Camera.Parameters params = mCamera.getParameters();
-        Camera.Size size = mCamera.new Size(previewWidth, previewHeight);
-
         mYuvPreviewFrame = new byte[previewWidth * previewHeight * 3 / 2];
-
-        params.setPreviewSize(previewWidth, previewHeight);
-
-        params.setPreviewFormat(ImageFormat.NV21);
-
-        List<String> supportedFocusModes = params.getSupportedFocusModes();
-
-        if (!supportedFocusModes.isEmpty()) {
-            if (supportedFocusModes.contains(Camera.Parameters.FOCUS_MODE_CONTINUOUS_PICTURE)) {
-                params.setFocusMode(Camera.Parameters.FOCUS_MODE_CONTINUOUS_PICTURE);
-            }
-        }
 
 //        mCamera.setParameters(params);
 

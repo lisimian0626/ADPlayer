@@ -109,20 +109,9 @@ public class MainActivity extends BaseActivity implements MediaPlayer.OnPrepared
         if (!isSurfaceCreated) {
             CreateSurfaceView();
         }
-//        if (cur_ADId.equals(adModel.getID())) {
-//            if (curIndex > 0) {
-////                mediaPlayer.reset();
-//                mediaPlayer.seekTo(curIndex);
-//                curIndex = 0;
-//            }
-////            try {
-////                mediaPlayer.prepare();
-////            } catch (IOException e) {
-////                e.printStackTrace();
-////            }
-////            mediaPlayer.start();
-//        } else {
             File media_file = TConst.getFileByUrl(adModel.getVideo_url());
+            if (media_file==null)
+                return;
             if(media_file.exists()){
                 try {
                     mediaPlayer.reset();
@@ -134,7 +123,9 @@ public class MainActivity extends BaseActivity implements MediaPlayer.OnPrepared
                     e.printStackTrace();
                 }
             }else{
-                startDownload(adModel.getVideo_url());
+                if(adModel.getVideo_url()!=null){
+                    startDownload(adModel.getVideo_url());
+                }
             }
 //        }
         switch (adModel.getPlay_type()) {
@@ -142,9 +133,13 @@ public class MainActivity extends BaseActivity implements MediaPlayer.OnPrepared
                 break;
             case 2:
                 File image_file = TConst.getFileByUrl(adModel.getImage_url());
+                if(image_file==null)
+                    return;
                 if(image_file.exists()) {
                     Glide.with(this).load(image_file).into(iv_pic);
                 }else{
+                    if(adModel.getImage_url()==null)
+                        return;
                     startDownload(adModel.getImage_url());
                 }
 //                iv_pic.setImageResource(Integer.valueOf(adModel.getVideo_url()));
@@ -331,13 +326,17 @@ public class MainActivity extends BaseActivity implements MediaPlayer.OnPrepared
 
             @Override
             public void onDownloadTaskError(BaseDownloadTask task, Throwable e) {
-                tv_process.setText(task.getFilename()+"   文件下载失败!");
+                if(task==null||task.getFilename()==null){
+                    tv_process.setText("文件下载失败!");
+                }else{
+                    tv_process.setText(task.getFilename()+"   文件下载失败!");
+                }
                 L.test("加载文件失败,请重新下载！");
             }
 
             @Override
             public void onDownloadProgress(BaseDownloadTask task, int soFarBytes, int totalBytes) {
-                if (task == null) {
+                if (task == null||task.getFilename()==null) {
                     return;
                 }
                 tv_process.setText(task.getFilename()+"   文件下载中...");
@@ -383,13 +382,16 @@ public class MainActivity extends BaseActivity implements MediaPlayer.OnPrepared
 
             @Override
             public void onDownloadTaskError(BaseDownloadTask task, Throwable e) {
+                if(task==null||task.getFilename()==null){
+                    tv_process.setText("文件下载失败!");
+                }
                 tv_process.setText(task.getFilename()+"   文件下载失败!");
                 L.test("加载文件失败,请重新下载！");
             }
 
             @Override
             public void onDownloadProgress(BaseDownloadTask task, int soFarBytes, int totalBytes) {
-                if (task == null) {
+                if (task == null||task.getFilename()==null) {
                     return;
                 }
                 tv_process.setText(task.getFilename()+"   文件下载中...");
@@ -552,7 +554,7 @@ public class MainActivity extends BaseActivity implements MediaPlayer.OnPrepared
 //            iv_pic.setImageResource(R.drawable.ad_corner_default);
 //        }
 
-        cameraView.startCamera();
+//        cameraView.startCamera();
     }
 
 //    private PlanInfo getDefPlan() {
