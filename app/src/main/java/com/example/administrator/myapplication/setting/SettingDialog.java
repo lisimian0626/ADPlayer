@@ -24,7 +24,7 @@ import com.example.administrator.myapplication.utils.PreferenceUtil;
 public  class SettingDialog extends DialogFragment implements CompoundButton.OnCheckedChangeListener{
     View mRootView;
     private TextView close;
-    private ToggleButton boot,resume;
+    private ToggleButton boot,resume,camera,hdmi;
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -49,6 +49,8 @@ public  class SettingDialog extends DialogFragment implements CompoundButton.OnC
         close=mRootView.findViewById(R.id.setting_close);
         boot=mRootView.findViewById(R.id.setting_tg_boot);
         resume=mRootView.findViewById(R.id.setting_tg_resume);
+        camera=mRootView.findViewById(R.id.setting_tg_camera);
+        hdmi=mRootView.findViewById(R.id.setting_tg_hdmi);
         close.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -57,8 +59,12 @@ public  class SettingDialog extends DialogFragment implements CompoundButton.OnC
         });
         boot.setChecked(PreferenceUtil.getBoolean(getContext(), "boot", true));
         resume.setChecked(PreferenceUtil.getBoolean(getContext(), "resume", true));
+        camera.setChecked(PreferenceUtil.getBoolean(getContext(), "camera", true));
+        hdmi.setChecked(PreferenceUtil.getBoolean(getContext(), "hdmi", true));
         boot.setOnCheckedChangeListener(this);
         resume.setOnCheckedChangeListener(this);
+        camera.setOnCheckedChangeListener(this);
+        hdmi.setOnCheckedChangeListener(this);
         Window window = getDialog().getWindow();
         WindowManager.LayoutParams lp = window.getAttributes();
         DisplayMetrics dm = new DisplayMetrics();
@@ -78,6 +84,12 @@ public  class SettingDialog extends DialogFragment implements CompoundButton.OnC
                 break;
             case R.id.setting_tg_resume:
                 PreferenceUtil.setBoolean(getContext(), "resume", b);
+                break;
+            case R.id.setting_tg_camera:
+                PreferenceUtil.setBoolean(getContext(), "camera", b);
+                break;
+            case R.id.setting_tg_hdmi:
+                PreferenceUtil.setBoolean(getContext(), "hdmi", b);
                 break;
         }
     }

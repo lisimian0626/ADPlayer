@@ -2,8 +2,12 @@
     <string name="app_name">AD_Player</string>
     <string name="set_boot_start">开机自启动</string>
     <string name="set_boot_start_dec">开启后,开机自动打开App</string>
+    <string name="set_camera">摄像头</string>
+    <string name="set_hdmi">HDMI</string>
     <string name="set_auto_resume">退出自动恢复</string>
     <string name="set_auto_resume_dec">开启后,退出App自动恢复</string>
+    <string name="set_auto_resume_camera">开启后,下区域显示摄像头信号</string>
+    <string name="set_auto_resume_hdmi">开启后,下区域显示HDMI信号</string>
     <string name="set_close">关闭</string>
 
     <string name="update_tip">版本升级</string>
