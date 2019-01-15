@@ -113,41 +113,41 @@
         android:textColor="#999"
         android:textSize="12dp" />
 
-    <RelativeLayout
-        android:layout_width="match_parent"
-        android:layout_height="48dp"
-        android:layout_marginTop="15dp"
-        android:background="#fff">
+    <!--<RelativeLayout-->
+        <!--android:layout_width="match_parent"-->
+        <!--android:layout_height="48dp"-->
+        <!--android:layout_marginTop="15dp"-->
+        <!--android:background="#fff">-->
 
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_centerVertical="true"
-            android:layout_marginLeft="10dp"
-            android:text="@string/set_hdmi"
-            android:textColor="#333"
-            android:textSize="16dp" />
+        <!--<TextView-->
+            <!--android:layout_width="wrap_content"-->
+            <!--android:layout_height="wrap_content"-->
+            <!--android:layout_centerVertical="true"-->
+            <!--android:layout_marginLeft="10dp"-->
+            <!--android:text="@string/set_hdmi"-->
+            <!--android:textColor="#333"-->
+            <!--android:textSize="16dp" />-->
 
-        <ToggleButton
-            android:id="@+id/setting_tg_hdmi"
-            android:layout_width="54dp"
-            android:layout_height="34dp"
-            android:layout_alignParentRight="true"
-            android:layout_centerVertical="true"
-            android:layout_marginRight="10dp"
-            android:background="@drawable/toggle_selector"
-            android:textOff=""
-            android:textOn="" />
-    </RelativeLayout>
+        <!--<ToggleButton-->
+            <!--android:id="@+id/setting_tg_hdmi"-->
+            <!--android:layout_width="54dp"-->
+            <!--android:layout_height="34dp"-->
+            <!--android:layout_alignParentRight="true"-->
+            <!--android:layout_centerVertical="true"-->
+            <!--android:layout_marginRight="10dp"-->
+            <!--android:background="@drawable/toggle_selector"-->
+            <!--android:textOff=""-->
+            <!--android:textOn="" />-->
+    <!--</RelativeLayout>-->
 
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="center"
-        android:layout_marginTop="8dp"
-        android:text="@string/set_auto_resume_hdmi"
-        android:textColor="#999"
-        android:textSize="12dp" />
+    <!--<TextView-->
+        <!--android:layout_width="wrap_content"-->
+        <!--android:layout_height="wrap_content"-->
+        <!--android:layout_gravity="center"-->
+        <!--android:layout_marginTop="8dp"-->
+        <!--android:text="@string/set_auto_resume_hdmi"-->
+        <!--android:textColor="#999"-->
+        <!--android:textSize="12dp" />-->
     <TextView
         android:layout_width="120dp"
         android:layout_height="40dp"

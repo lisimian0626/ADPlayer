@@ -247,13 +247,15 @@ public class MainActivity extends BaseActivity implements MediaPlayer.OnPrepared
                 mainPresenter.fetchHeartbeat(heartBeatJson.toString());
                 break;
             case EventBusId.startCamera:
-
+                cameraView.setPreviewRotation(180);
+                cameraView.startCamera();
                 break;
 
             case EventBusId.startHDMI:
                 break;
 
             case EventBusId.closeCamera:
+                cameraView.stopCamera();
                 break;
             case EventBusId.closeHDMI:
                 break;
@@ -576,8 +578,10 @@ public class MainActivity extends BaseActivity implements MediaPlayer.OnPrepared
 //        else{
 //            iv_pic.setImageResource(R.drawable.ad_corner_default);
 //        }
-
-//        cameraView.startCamera();
+        if(PreferenceUtil.getBoolean(MainActivity.this, "camera", true)){
+            cameraView.setPreviewRotation(180);
+            cameraView.startCamera();
+        }
     }
 
 //    private PlanInfo getDefPlan() {
