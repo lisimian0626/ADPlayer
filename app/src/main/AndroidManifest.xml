@@ -40,8 +40,11 @@
                 <!--涉及到存储卡状态改变的时候必须添加-->
                 <data android:scheme="package" />
             </intent-filter>
-
         </receiver>
+        <service
+            android:name=".service.SleepService"
+            android:enabled="true"
+            android:exported="true" />
     </application>
 
 </manifest>

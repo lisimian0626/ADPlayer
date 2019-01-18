@@ -18,6 +18,8 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.bumptech.glide.Glide;
+import com.bumptech.glide.load.engine.DiskCacheStrategy;
+import com.bumptech.glide.request.RequestOptions;
 import com.example.administrator.myapplication.base.BaseActivity;
 import com.example.administrator.myapplication.bussiness.constract.MainConstract;
 import com.example.administrator.myapplication.bussiness.persent.MainPresenter;
@@ -96,7 +98,7 @@ public class MainActivity extends BaseActivity implements MediaPlayer.OnPrepared
     private String cur_planID, new_planID;
     private DlgProgress dlgProgress;
     private SmdtManager smdt;
-
+    private RequestOptions options;
     private void play(ADModel adModel) {
         stopPlayer();
         if (adModel == null) {
@@ -139,7 +141,10 @@ public class MainActivity extends BaseActivity implements MediaPlayer.OnPrepared
                 if (image_file == null)
                     return;
                 if (image_file.exists()) {
-                    Glide.with(this).load(image_file).into(iv_pic);
+                    if(options==null){
+                        options=initOption();
+                    }
+                    Glide.with(this).load(image_file).apply(options).into(iv_pic);
                 } else {
                     if (adModel.getImage_url() == null)
                         return;
@@ -514,6 +519,9 @@ public class MainActivity extends BaseActivity implements MediaPlayer.OnPrepared
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         smdt = new SmdtManager(MainActivity.this);
+        if(options==null){
+            options=initOption();
+        }
     }
 
     @Override
@@ -801,7 +809,12 @@ public class MainActivity extends BaseActivity implements MediaPlayer.OnPrepared
             }
         }
     }
-
+    private RequestOptions initOption(){
+        RequestOptions options = new RequestOptions();
+        options.skipMemoryCache(true)
+                .diskCacheStrategy(DiskCacheStrategy.ALL);
+        return options;
+    }
 //    private boolean SetHdmi(Boolean enable) {
 //        boolean ret1 = smdt.setHdmiInAudioEnable(getApplicationContext(), enable);
 //        if (ret1) {
