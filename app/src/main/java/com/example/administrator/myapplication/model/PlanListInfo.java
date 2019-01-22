@@ -21,6 +21,8 @@ public class PlanListInfo {
     private int PlayFileID;
     private int PlayOrder;
     private int GroupFlag;
+    private int PlaylistSubType;
+    private int duration;
     private String FileType;
     private String URL;
 
@@ -82,5 +84,21 @@ public class PlanListInfo {
 
     public void setFileType(String fileType) {
         FileType = fileType;
+    }
+
+    public int getPlaylistSubType() {
+        return PlaylistSubType;
+    }
+
+    public void setPlaylistSubType(int playlistSubType) {
+        PlaylistSubType = playlistSubType;
+    }
+
+    public int getDuration() {
+        return duration;
+    }
+
+    public void setDuration(int duration) {
+        this.duration = duration;
     }
 }

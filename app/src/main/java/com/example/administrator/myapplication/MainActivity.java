@@ -433,6 +433,7 @@ public class MainActivity extends BaseActivity implements MediaPlayer.OnPrepared
     private PlanInfo data2PlanInfo(List<PlanListInfo> planListInfos) {
         Map<Integer, List<PlanListInfo>> maplist = new HashMap<>();
         for (PlanListInfo planListInfo : planListInfos) {
+//            TextUtils.isEmpty(planListInfo.getDuration())
             //使用GSON，直接转成Bean对象
             List<PlanListInfo> temp = maplist.get(planListInfo.getGroupFlag());
             if (temp == null) {
@@ -511,6 +512,8 @@ public class MainActivity extends BaseActivity implements MediaPlayer.OnPrepared
 
     @Override
     public void onPrepared(MediaPlayer mp) {
+        L.test("duration:"+mp.getDuration());
+//        mp.getDuration();
         mediaPlayer.seekTo(curIndex);
         mediaPlayer.start();
     }
@@ -670,7 +673,7 @@ public class MainActivity extends BaseActivity implements MediaPlayer.OnPrepared
             if (!TextUtils.isEmpty(new_planID) && !new_planID.equals(cur_planID)) {
                 GetPlanJson getPlanJson = new GetPlanJson();
                 getPlanJson.setPlanID(new_planID);
-                getPlanJson.setMac("e558779714542319");
+                getPlanJson.setMac(DeviceUtil.getCupChipID());
                 L.test(getPlanJson.toString());
                 mainPresenter.fetchPlan(getPlanJson.toString());
             }
@@ -697,7 +700,8 @@ public class MainActivity extends BaseActivity implements MediaPlayer.OnPrepared
             //    getPlaylist/{"playlistID":"36","total":"30","mac":"e558779714542319"}
             PlanlistJson planlistJson = new PlanlistJson();
             planlistJson.setPlaylistID(String.valueOf(profileID));
-            planlistJson.setMac("e558779714542319");
+            planlistJson.setMac(DeviceUtil.getCupChipID());
+//            planlistJson.setMac("e558779714542319");
             L.test(planlistJson.toString());
             mainPresenter.fetctPlanList(planlistJson.toString());
 //            L.test(planforResultArrayList.get(0).getProfileID()+"");

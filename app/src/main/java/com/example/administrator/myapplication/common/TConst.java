@@ -31,10 +31,8 @@ public class TConst {
 //    public static final String BASE_URL = "http://minorder.beidousat.com";
 //    public static final String VERSION_UPDATE_URL = "http://m.beidousat.com/";
 
-    public static final int PAGE_NUM = 20; //一页消息的数量
+    public static final int normal_duration = 20; //默认播放时长
 
-
-    public static final int APP_TYPE = 4; //miniktv系统 = 2
     /**
      * http 状态码
      */
