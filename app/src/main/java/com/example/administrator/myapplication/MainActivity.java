@@ -1,6 +1,7 @@
 package com.example.administrator.myapplication;
 
 import android.app.smdt.SmdtManager;
+import android.content.Intent;
 import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.Bundle;
@@ -39,6 +40,7 @@ import com.example.administrator.myapplication.model.PlanlistJson;
 import com.example.administrator.myapplication.model.VersionJson;
 import com.example.administrator.myapplication.model.VersionResult;
 import com.example.administrator.myapplication.net.download.DownloadQueueHelper;
+import com.example.administrator.myapplication.service.SleepService;
 import com.example.administrator.myapplication.setting.SettingDialog;
 import com.example.administrator.myapplication.upgrade.dialog.DlgProgress;
 import com.example.administrator.myapplication.utils.DeviceUtil;
@@ -293,6 +295,7 @@ public class MainActivity extends BaseActivity implements MediaPlayer.OnPrepared
     @Override
     protected void onDestroy() {
         super.onDestroy();
+//        stopService(new Intent(MainActivity.this, SleepService.class));
         stopPlayer();
     }
 
@@ -454,11 +457,11 @@ public class MainActivity extends BaseActivity implements MediaPlayer.OnPrepared
                 if (data.getFileType().equals("PNG")) {
                     adModel.setID(String.valueOf(data.getGroupFlag()));
                     adModel.setImage_url(data.getURL());
-                    adModel.setPlay_type(2);
+                    adModel.setPlay_type(data.getPlaylistSubType());
                 } else if (data.getFileType().equals("AVI")) {
                     adModel.setID(String.valueOf(data.getGroupFlag()));
                     adModel.setVideo_url(data.getURL());
-                    adModel.setPlay_type(2);
+                    adModel.setPlay_type(data.getPlaylistSubType());
                 }
             }
             adModelList.add(adModel);
@@ -525,6 +528,7 @@ public class MainActivity extends BaseActivity implements MediaPlayer.OnPrepared
         if(options==null){
             options=initOption();
         }
+//        startService(new Intent(MainActivity.this,SleepService.class));
     }
 
     @Override
@@ -685,6 +689,7 @@ public class MainActivity extends BaseActivity implements MediaPlayer.OnPrepared
     @Override
     public void OngetPlan(ResponseBody responseBody) {
         try {
+//            L.test("OngetPlan:"+responseBody.string());
             JsonParser parser = new JsonParser();
             JsonArray jsonArray = parser.parse(responseBody.string()).getAsJsonArray();
             Gson gson = new Gson();
@@ -713,6 +718,7 @@ public class MainActivity extends BaseActivity implements MediaPlayer.OnPrepared
     @Override
     public void OnGetPlanList(ResponseBody responseBody) {
         try {
+//                        L.test("OnGetPlanList:"+responseBody.string());
             JsonParser parser = new JsonParser();
             JsonArray jsonArray = parser.parse(responseBody.string()).getAsJsonArray();
             Gson gson = new Gson();
