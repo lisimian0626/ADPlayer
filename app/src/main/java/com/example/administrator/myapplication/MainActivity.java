@@ -6,6 +6,7 @@ import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
+import android.provider.Settings;
 import android.support.annotation.Nullable;
 import android.text.TextUtils;
 import android.util.Log;
@@ -13,6 +14,8 @@ import android.view.KeyEvent;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.view.View;
+import android.view.Window;
+import android.view.WindowManager;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
@@ -835,5 +838,25 @@ public class MainActivity extends BaseActivity implements MediaPlayer.OnPrepared
 //        return ret1;
 //    }
 
+    public void changeAppBrightness(float brightness) {
+        Window window = this.getWindow();
+        WindowManager.LayoutParams lp = window.getAttributes();
+//        if (brightness == -1) {
+//            lp.screenBrightness = WindowManager.LayoutParams.BRIGHTNESS_OVERRIDE_NONE;
+//        } else {
+//            lp.screenBrightness = (brightness <= 0 ? 1 : brightness) / 255f;
+//        }
+        lp.screenBrightness = brightness;
+        window.setAttributes(lp);
+    }
 
+    private int getSystemBrightness() {
+        int systemBrightness = 0;
+        try {
+            systemBrightness = Settings.System.getInt(getContentResolver(), Settings.System.SCREEN_BRIGHTNESS);
+        } catch (Settings.SettingNotFoundException e) {
+            e.printStackTrace();
+        }
+        return systemBrightness;
+    }
 }
