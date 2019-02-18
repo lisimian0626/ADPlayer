@@ -23,7 +23,7 @@ public class TConst {
     public static final String DOWN_APK_NAME="ADPlayer";
 
 ////    测试环境
-    public static final String BASE_URL = "http://111.230.222.252:8981/";
+    public static final String BASE_URL = "http://14.23.42.206:8981/";
 //    public static final String VERSION_UPDATE_URL = "http://60.195.40.230:2800/";
 
 

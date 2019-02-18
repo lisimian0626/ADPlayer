@@ -112,42 +112,49 @@ public class MainActivity extends BaseActivity implements MediaPlayer.OnPrepared
 
         cur_Ad = adModel;
         tv_tips.setText("当前播放：" + "广告" + adModel.getID() + "|" + "模板" + adModel.getPlay_type());
-        iv_pic.setVisibility(adModel.getPlay_type() == 2 ? View.VISIBLE : View.GONE);
+        cameraView.setVisibility(adModel.getPlay_type() == 1 ? View.VISIBLE : View.GONE);
         if (mediaPlayer == null) {
             CreateMediaPlayer();
         }
         if (!isSurfaceCreated) {
             CreateSurfaceView();
         }
-        File media_file = TConst.getFileByUrl(adModel.getVideo_url());
-        if (media_file == null)
-            return;
-        if (media_file.exists()) {
-            try {
-                mediaPlayer.reset();
-                mediaPlayer.setDataSource(media_file.getAbsolutePath());
-                mediaPlayer.setDisplay(main_surf1.getHolder());
-                mediaPlayer.setLooping(true);
-                mediaPlayer.prepareAsync();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
+        if (TextUtils.isEmpty(adModel.getVideo_url())) {
+            main_surf1.setVisibility(View.GONE);
         } else {
-            if (adModel.getVideo_url() != null) {
-                startDownload(adModel.getVideo_url());
+            File media_file = TConst.getFileByUrl(adModel.getVideo_url());
+            if (media_file == null) {
+                main_surf1.setVisibility(View.GONE);
+            } else {
+                if (media_file.exists()) {
+                    main_surf1.setVisibility(View.VISIBLE);
+                    try {
+                        mediaPlayer.reset();
+                        mediaPlayer.setDataSource(media_file.getAbsolutePath());
+                        mediaPlayer.setDisplay(main_surf1.getHolder());
+                        mediaPlayer.setLooping(true);
+                        mediaPlayer.prepareAsync();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                } else {
+                    if (adModel.getVideo_url() != null) {
+                        startDownload(adModel.getVideo_url());
+                    }
+                }
             }
         }
-//        }
-        switch (adModel.getPlay_type()) {
-            case 1:
-                break;
-            case 2:
-                File image_file = TConst.getFileByUrl(adModel.getImage_url());
-                if (image_file == null)
-                    return;
+        if (TextUtils.isEmpty(adModel.getImage_url())) {
+            iv_pic.setVisibility(View.GONE);
+        } else {
+            File image_file = TConst.getFileByUrl(adModel.getImage_url());
+            if (image_file == null) {
+                iv_pic.setVisibility(View.GONE);
+            } else {
                 if (image_file.exists()) {
-                    if(options==null){
-                        options=initOption();
+                    iv_pic.setVisibility(View.VISIBLE);
+                    if (options == null) {
+                        options = initOption();
                     }
                     Glide.with(this).load(image_file).apply(options).into(iv_pic);
                 } else {
@@ -155,9 +162,31 @@ public class MainActivity extends BaseActivity implements MediaPlayer.OnPrepared
                         return;
                     startDownload(adModel.getImage_url());
                 }
-//                iv_pic.setImageResource(Integer.valueOf(adModel.getVideo_url()));
-                break;
+            }
         }
+
+
+//        }
+//        switch (adModel.getPlay_type()) {
+//            case 1:
+//                break;
+//            case 2:
+//                File image_file = TConst.getFileByUrl(adModel.getImage_url());
+//                if (image_file == null)
+//                    return;
+//                if (image_file.exists()) {
+//                    if(options==null){
+//                        options=initOption();
+//                    }
+//                    Glide.with(this).load(image_file).apply(options).into(iv_pic);
+//                } else {
+//                    if (adModel.getImage_url() == null)
+//                        return;
+//                    startDownload(adModel.getImage_url());
+//                }
+////                iv_pic.setImageResource(Integer.valueOf(adModel.getVideo_url()));
+//                break;
+//        }
         cur_ADId = adModel.getID();
     }
 
@@ -518,7 +547,8 @@ public class MainActivity extends BaseActivity implements MediaPlayer.OnPrepared
 
     @Override
     public void onPrepared(MediaPlayer mp) {
-        L.test("duration:"+mp.getDuration());
+        nextTime=(mp.getDuration()/1000);
+        L.test("duration:" + nextTime);
 //        mp.getDuration();
         mediaPlayer.seekTo(curIndex);
         mediaPlayer.start();
@@ -528,8 +558,8 @@ public class MainActivity extends BaseActivity implements MediaPlayer.OnPrepared
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         smdt = new SmdtManager(MainActivity.this);
-        if(options==null){
-            options=initOption();
+        if (options == null) {
+            options = initOption();
         }
 //        startService(new Intent(MainActivity.this,SleepService.class));
     }
@@ -591,14 +621,25 @@ public class MainActivity extends BaseActivity implements MediaPlayer.OnPrepared
 
     @Override
     public void initData() {
+        String onTime=PreferenceUtil.getString(MainActivity.this, "onTime", "");
+        String offTime=PreferenceUtil.getString(MainActivity.this, "offTime", "");
+        if (!TextUtils.isEmpty(onTime) &&!TextUtils.isEmpty(offTime)){
+            SmdtManager smdt = SmdtManager.create(this);
+            smdt.smdtSetTimingSwitchMachine (offTime, onTime,"1");
+            L.test("setTime------"+"offTime:"+offTime+"----"+"onTime:"+onTime);
+        }
 
+//
+//        int screen_number = smdt.getHdmiinStatus();
+//        L.test("screen_number:"+String.valueOf(screen_number));
 
 //        else{
 //            iv_pic.setImageResource(R.drawable.ad_corner_default);
 //        }
-        if(PreferenceUtil.getBoolean(MainActivity.this, "camera", true)){
-            cameraView.setPreviewRotation(180);
-            cameraView.startCamera();
+        if (PreferenceUtil.getBoolean(MainActivity.this, "camera", true)) {
+//            cameraView.setPreviewRotation(180);
+            boolean camera=cameraView.startCamera();
+            L.test("camera:"+camera);
         }
     }
 
@@ -632,6 +673,10 @@ public class MainActivity extends BaseActivity implements MediaPlayer.OnPrepared
             syncTime = planInfo.getTotal();
             nextTime = planInfo.getSecond();
             adModelList = planInfo.getAdModelList();
+//            adModelList.get(0).setPlay_type(1);
+//            adModelList.get(1).setPlay_type(1);
+//            adModelList.get(0).setVideo_url(null);
+//            adModelList.get(1).setImage_url(null);
         }
 
     }
@@ -657,7 +702,9 @@ public class MainActivity extends BaseActivity implements MediaPlayer.OnPrepared
         //Json的解析类对象
         JsonParser parser = new JsonParser();
         try {
-            JsonArray jsonArray = parser.parse(responseBody.string()).getAsJsonArray();
+            String heartbeat=responseBody.string();
+            L.test("heartbeat:"+heartbeat);
+            JsonArray jsonArray = parser.parse(heartbeat).getAsJsonArray();
             Gson gson = new Gson();
             ArrayList<HeartbeatInfo> heartbeatInfoArrayList = new ArrayList<>();
 
@@ -667,6 +714,7 @@ public class MainActivity extends BaseActivity implements MediaPlayer.OnPrepared
                 HeartbeatInfo heartbeatInfo = gson.fromJson(user, HeartbeatInfo.class);
                 heartbeatInfoArrayList.add(heartbeatInfo);
             }
+
             String version = heartbeatInfoArrayList.get(0).getVersioncode();
             if (Integer.valueOf(version) > PackageUtil.getVersionCode(MainActivity.this)) {
                 L.test("服务器有新版本");
@@ -674,6 +722,17 @@ public class MainActivity extends BaseActivity implements MediaPlayer.OnPrepared
                 versionJson.setVersionCode(version);
                 L.test(versionJson.toString());
                 mainPresenter.fetchApkInfo(versionJson.toString());
+            }
+            String off=heartbeatInfoArrayList.get(0).getOffTime();
+            String on=heartbeatInfoArrayList.get(0).getOnTime();
+            if(!TextUtils.isEmpty(off)&&!TextUtils.isEmpty(on)){
+                if(!PreferenceUtil.getString(MainActivity.this, "offTime", "").equals(off)||!PreferenceUtil.getString(MainActivity.this, "onTime", "").equals(on)){
+                    PreferenceUtil.setString(MainActivity.this, "offTime", off);
+                    PreferenceUtil.setString(MainActivity.this, "onTime", on);
+                    SmdtManager smdt = SmdtManager.create(this);
+                    smdt.smdtSetTimingSwitchMachine (off, on,"1");
+                    L.test("setTimeOnHeartBeat------"+"offTime:"+off+"----"+"onTime:"+on);
+                }
             }
 
             new_planID = heartbeatInfoArrayList.get(0).getNewPlanID();
@@ -822,7 +881,8 @@ public class MainActivity extends BaseActivity implements MediaPlayer.OnPrepared
             }
         }
     }
-    private RequestOptions initOption(){
+
+    private RequestOptions initOption() {
         RequestOptions options = new RequestOptions();
         options.skipMemoryCache(true)
                 .diskCacheStrategy(DiskCacheStrategy.ALL);

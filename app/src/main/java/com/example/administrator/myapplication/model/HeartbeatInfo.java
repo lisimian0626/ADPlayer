@@ -6,7 +6,8 @@ public class HeartbeatInfo implements Serializable{
 
     private String newPlanID;
     private String versionCode;
-
+    private String onTime;
+    private String offTime;
 
     public String getNewPlanID() {
         return newPlanID;
@@ -22,5 +23,21 @@ public class HeartbeatInfo implements Serializable{
 
     public void setVersioncode(String versioncode) {
         versionCode = versioncode;
+    }
+
+    public String getOnTime() {
+        return onTime;
+    }
+
+    public void setOnTime(String onTime) {
+        this.onTime = onTime;
+    }
+
+    public String getOffTime() {
+        return offTime;
+    }
+
+    public void setOffTime(String offTime) {
+        this.offTime = offTime;
     }
 }

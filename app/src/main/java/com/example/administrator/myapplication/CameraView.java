@@ -16,7 +16,7 @@ public class CameraView extends SurfaceView implements SurfaceHolder.Callback, C
     private Camera mCamera;
 
     private int mPreviewRotation = 0;
-    private int mCamId = Camera.CameraInfo.CAMERA_FACING_FRONT;
+    private int mCamId = Camera.CameraInfo.CAMERA_FACING_BACK;
     private PreviewCallback mPrevCb;
     private byte[] mYuvPreviewFrame;
     private int previewWidth;

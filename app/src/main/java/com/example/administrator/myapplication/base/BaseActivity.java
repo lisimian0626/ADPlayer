@@ -24,7 +24,7 @@ public abstract class BaseActivity extends AppCompatActivity {
     private ScheduledExecutorService mScheduledExecutorService;
     public static int syncTime = 5;
     public static int nextTime = 20;
-
+    private int count=0;
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -117,6 +117,11 @@ public abstract class BaseActivity extends AppCompatActivity {
         service.scheduleAtFixedRate(new Runnable() {
             @Override
             public void run() {
+                count++;
+                if(nextTime==count){
+                    EventBusHelper.sendEvent(BusEvent.getEvent(EventBusId.nextTime));
+                    count=0;
+                }
                 long time = System.currentTimeMillis();
                 Calendar mCalendar = Calendar.getInstance();
                 mCalendar.setTimeInMillis(time);
@@ -126,11 +131,7 @@ public abstract class BaseActivity extends AppCompatActivity {
                 if (mMinute != 0 && mMinute % syncTime == 0 && mSecond == 0) {
                     L.d("同步");
                     EventBusHelper.sendEvent(BusEvent.getEvent(EventBusId.syncTime));
-                } else if (mSecond != 0 && mSecond % nextTime == 0) {
-                    L.d("next");
-                    EventBusHelper.sendEvent(BusEvent.getEvent(EventBusId.nextTime));
-                } else if (mSecond == 0) {
-                    EventBusHelper.sendEvent(BusEvent.getEvent(EventBusId.nextTime));
+                }  else if (mSecond == 0) {
                     EventBusHelper.sendEvent(BusEvent.getEvent(EventBusId.heartbeat));
                 } else if (mSecond == 30) {
                     EventBusHelper.sendEvent(BusEvent.getEvent(EventBusId.heartbeat));

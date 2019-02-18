@@ -6,6 +6,8 @@ import android.content.Intent;
 import android.os.IBinder;
 import android.os.PowerManager;
 
+import com.example.administrator.myapplication.utils.L;
+
 import java.io.DataOutputStream;
 import java.io.OutputStream;
 import java.util.Calendar;
@@ -38,11 +40,12 @@ public class SleepService extends Service {
                 if (isOnTime()) {
                     // 触发POWER事件
                     execShell("input keyevent 26");
+                    L.d("sleep");
                 }
-                if (isOffTime()) {
-                    // 触发POWER事件
-                    execShell("input keyevent 26");
-                }
+//                if (isOffTime()) {
+//                    // 触发POWER事件
+//                    execShell("input keyevent 26");
+//                }
             }
         }
     }

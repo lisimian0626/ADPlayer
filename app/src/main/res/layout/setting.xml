@@ -88,7 +88,7 @@
             android:layout_height="wrap_content"
             android:layout_centerVertical="true"
             android:layout_marginLeft="10dp"
-            android:text="@string/set_camera"
+            android:text="@string/set_hdmi"
             android:textColor="#333"
             android:textSize="16dp" />
 
@@ -109,7 +109,7 @@
         android:layout_height="wrap_content"
         android:layout_gravity="center"
         android:layout_marginTop="8dp"
-        android:text="@string/set_auto_resume_camera"
+        android:text="@string/set_auto_resume_hdmi"
         android:textColor="#999"
         android:textSize="12dp" />
 
