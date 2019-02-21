@@ -286,7 +286,7 @@ public class MainActivity extends BaseActivity implements MediaPlayer.OnPrepared
                 mainPresenter.fetchHeartbeat(heartBeatJson.toString());
                 break;
             case EventBusId.startCamera:
-                cameraView.setPreviewRotation(180);
+//                cameraView.setPreviewRotation(180);
                 cameraView.startCamera();
                 break;
 
@@ -628,7 +628,7 @@ public class MainActivity extends BaseActivity implements MediaPlayer.OnPrepared
             smdt.smdtSetTimingSwitchMachine (offTime, onTime,"1");
             L.test("setTime------"+"offTime:"+offTime+"----"+"onTime:"+onTime);
         }
-
+        cameraView.setPreviewResolution(1080,650);
 //
 //        int screen_number = smdt.getHdmiinStatus();
 //        L.test("screen_number:"+String.valueOf(screen_number));
@@ -638,6 +638,7 @@ public class MainActivity extends BaseActivity implements MediaPlayer.OnPrepared
 //        }
         if (PreferenceUtil.getBoolean(MainActivity.this, "camera", true)) {
 //            cameraView.setPreviewRotation(180);
+
             boolean camera=cameraView.startCamera();
             L.test("camera:"+camera);
         }
