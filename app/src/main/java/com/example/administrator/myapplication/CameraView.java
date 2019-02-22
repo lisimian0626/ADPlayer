@@ -71,7 +71,7 @@ public class CameraView extends SurfaceView implements SurfaceHolder.Callback, C
 //        mCamera.setParameters(params);
 
         mCamera.setDisplayOrientation(mPreviewRotation);
-
+        mCamera.getParameters().setPreviewSize(previewWidth,previewHeight);
         mCamera.addCallbackBuffer(mYuvPreviewFrame);
         mCamera.setPreviewCallbackWithBuffer(this);
         try {
