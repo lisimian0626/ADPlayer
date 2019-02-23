@@ -1,7 +1,6 @@
 package com.example.administrator.myapplication;
 
 import android.content.Context;
-import android.graphics.ImageFormat;
 import android.hardware.Camera;
 import android.util.AttributeSet;
 import android.view.SurfaceHolder;
@@ -11,10 +10,7 @@ import java.io.IOException;
 import java.util.List;
 
 public class CameraView extends SurfaceView implements SurfaceHolder.Callback, Camera.PreviewCallback {
-
-
     private Camera mCamera;
-
     private int mPreviewRotation = 0;
     private int mCamId = Camera.CameraInfo.CAMERA_FACING_BACK;
     private PreviewCallback mPrevCb;
@@ -63,12 +59,19 @@ public class CameraView extends SurfaceView implements SurfaceHolder.Callback, C
         if (mCamId > (Camera.getNumberOfCameras() - 1) || mCamId < 0) {
             return false;
         }
-
         mCamera = Camera.open(mCamId);
-
         mYuvPreviewFrame = new byte[previewWidth * previewHeight * 3 / 2];
-
-//        mCamera.setParameters(params);
+        Camera.Parameters parameters = mCamera.getParameters();//获取各项参数
+        Camera.Size previewSize;
+        try {
+            previewSize = findFitPreResolution(parameters);
+            if(previewSize!=null){
+                parameters.setPreviewSize(previewSize.width, previewSize.height);// 设置预览大小
+                mCamera.setParameters(parameters);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
 
         mCamera.setDisplayOrientation(mPreviewRotation);
         mCamera.getParameters().setPreviewSize(previewWidth,previewHeight);
@@ -117,4 +120,21 @@ public class CameraView extends SurfaceView implements SurfaceHolder.Callback, C
     @Override
     public void surfaceDestroyed(SurfaceHolder arg0) {
     }
+    private Camera.Size findFitPreResolution(Camera.Parameters cameraParameters) throws Exception {
+        List<Camera.Size> supportedPicResolutions = cameraParameters.getSupportedPreviewSizes();
+
+        Camera.Size resultSize = null;
+        for (Camera.Size size : supportedPicResolutions) {
+                if (resultSize == null) {
+                    resultSize = size;
+                } else if (size.width > resultSize.width) {
+                    resultSize = size;
+            }
+        }
+        if (resultSize == null) {
+            return supportedPicResolutions.get(0);
+        }
+        return resultSize;
+    }
+
 }
