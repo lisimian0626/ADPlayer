@@ -540,7 +540,7 @@ public class MainActivity extends BaseActivity implements MediaPlayer.OnPrepared
 
     @Override
     public boolean onError(MediaPlayer mediaPlayer, int i, int i1) {
-        stopPlayer();
+        EventBusHelper.sendEvent(BusEvent.getEvent(EventBusId.nextTime));
 //        initPlayer();
         return false;
     }
