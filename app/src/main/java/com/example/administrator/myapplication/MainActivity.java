@@ -129,6 +129,7 @@ public class MainActivity extends BaseActivity implements MediaPlayer.OnPrepared
                 if (media_file.exists()) {
                     main_surf1.setVisibility(View.VISIBLE);
                     try {
+                        nextTime=adModel.getDuration();
                         mediaPlayer.reset();
                         mediaPlayer.setDataSource(media_file.getAbsolutePath());
                         mediaPlayer.setDisplay(main_surf1.getHolder());
@@ -188,6 +189,7 @@ public class MainActivity extends BaseActivity implements MediaPlayer.OnPrepared
 //                break;
 //        }
         cur_ADId = adModel.getID();
+        nextTime=adModel.getDuration();
     }
 
     private void initPlayer() {
@@ -490,10 +492,12 @@ public class MainActivity extends BaseActivity implements MediaPlayer.OnPrepared
                     adModel.setID(String.valueOf(data.getGroupFlag()));
                     adModel.setImage_url(data.getURL());
                     adModel.setPlay_type(data.getPlaylistSubType());
+                    adModel.setDuration(TConst.normal_duration);
                 } else if (data.getFileType().equals("AVI")) {
                     adModel.setID(String.valueOf(data.getGroupFlag()));
                     adModel.setVideo_url(data.getURL());
                     adModel.setPlay_type(data.getPlaylistSubType());
+                    adModel.setDuration(TConst.normal_duration);
                 }
             }
             adModelList.add(adModel);
@@ -540,14 +544,14 @@ public class MainActivity extends BaseActivity implements MediaPlayer.OnPrepared
 
     @Override
     public boolean onError(MediaPlayer mediaPlayer, int i, int i1) {
-        EventBusHelper.sendEvent(BusEvent.getEvent(EventBusId.nextTime));
+//        EventBusHelper.sendEvent(BusEvent.getEvent(EventBusId.nextTime));
 //        initPlayer();
         return false;
     }
 
     @Override
     public void onPrepared(MediaPlayer mp) {
-        nextTime=(mp.getDuration()/1000);
+        adModelList.get(current_play).setDuration(mp.getDuration()/1000);
         L.test("duration:" + nextTime);
 //        mp.getDuration();
         mediaPlayer.seekTo(curIndex);
