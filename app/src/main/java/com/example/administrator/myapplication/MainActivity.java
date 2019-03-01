@@ -748,6 +748,14 @@ public class MainActivity extends BaseActivity implements MediaPlayer.OnPrepared
                 L.test(getPlanJson.toString());
                 mainPresenter.fetchPlan(getPlanJson.toString());
             }
+            int total=0;
+            long frameFlag=heartbeatInfoArrayList.get(0).getFrameFlag();
+            for (ADModel adModel:adModelList){
+                total+=adModel.getDuration();
+            }
+            if(frameFlag!=0){
+                long time=frameFlag%total;
+            }
         } catch (IOException e) {
             e.printStackTrace();
         }

@@ -8,7 +8,7 @@ public class HeartbeatInfo implements Serializable{
     private String versionCode;
     private String onTime;
     private String offTime;
-
+    private long FrameFlag;
     public String getNewPlanID() {
         return newPlanID;
     }
@@ -39,5 +39,13 @@ public class HeartbeatInfo implements Serializable{
 
     public void setOffTime(String offTime) {
         this.offTime = offTime;
+    }
+
+    public long getFrameFlag() {
+        return FrameFlag;
+    }
+
+    public void setFrameFlag(long frameFlag) {
+        FrameFlag = frameFlag;
     }
 }
