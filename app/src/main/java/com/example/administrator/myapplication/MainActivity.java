@@ -753,8 +753,24 @@ public class MainActivity extends BaseActivity implements MediaPlayer.OnPrepared
             for (ADModel adModel:adModelList){
                 total+=adModel.getDuration();
             }
-            if(frameFlag!=0){
+            if(frameFlag!=0&&total!=0){
                 long time=frameFlag%total;
+                long lastTime=0;
+                int curtime=0;
+                L.test("FrameFlag:"+frameFlag+"---"+"total:"+total+"----"+"time"+time);
+                for(int i=0; i<adModelList.size();i++){
+                   curtime+=adModelList.get(i).getDuration();
+
+                   if(curtime>time){
+                       lastTime=time-(curtime-adModelList.get(i).getDuration());
+                       L.test("lastTime:"+lastTime);
+//                       if(current_play!=i-1&&Math.abs(mediaPlayer.getDuration()-lastTime*1000)>1000){
+//                           curIndex= (int) (lastTime*1000);
+//                           play(adModelList.get(i-1));
+//                       }
+                       break;
+                   }
+                }
             }
         } catch (IOException e) {
             e.printStackTrace();
