@@ -331,6 +331,7 @@ public class MainActivity extends BaseActivity implements MediaPlayer.OnPrepared
         super.onDestroy();
 //        stopService(new Intent(MainActivity.this, SleepService.class));
         stopPlayer();
+
     }
 
     @Override
@@ -748,13 +749,13 @@ public class MainActivity extends BaseActivity implements MediaPlayer.OnPrepared
                 L.test(getPlanJson.toString());
                 mainPresenter.fetchPlan(getPlanJson.toString());
             }
-            int total=0;
+            long total=0;
             long frameFlag=heartbeatInfoArrayList.get(0).getFrameFlag();
             for (ADModel adModel:adModelList){
                 total+=adModel.getDuration();
             }
             if(frameFlag!=0&&total!=0){
-                long time=frameFlag%total;
+                long time=frameFlag%(total);
                 long lastTime=0;
                 int curtime=0;
                 L.test("FrameFlag:"+frameFlag+"---"+"total:"+total+"----"+"time"+time);
@@ -763,11 +764,11 @@ public class MainActivity extends BaseActivity implements MediaPlayer.OnPrepared
 
                    if(curtime>time){
                        lastTime=time-(curtime-adModelList.get(i).getDuration());
-                       L.test("lastTime:"+lastTime);
-//                       if(current_play!=i-1&&Math.abs(mediaPlayer.getDuration()-lastTime*1000)>1000){
-//                           curIndex= (int) (lastTime*1000);
+                       L.test("lastTime:"+lastTime+"   "+"server_play:"+String.valueOf(i-1)+"   "+"current_play:"+current_play+"   "+"delay:"+Math.abs(mediaPlayer.getDuration()-lastTime));
+                       if(current_play!=i-1&&Math.abs(mediaPlayer.getDuration()-lastTime)>1){
+                           curIndex= (int) (lastTime);
 //                           play(adModelList.get(i-1));
-//                       }
+                       }
                        break;
                    }
                 }

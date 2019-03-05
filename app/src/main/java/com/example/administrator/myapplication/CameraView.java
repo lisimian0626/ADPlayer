@@ -59,6 +59,7 @@ public class CameraView extends SurfaceView implements SurfaceHolder.Callback, C
         if (mCamId > (Camera.getNumberOfCameras() - 1) || mCamId < 0) {
             return false;
         }
+        stopCamera();
         mCamera = Camera.open(mCamId);
         mYuvPreviewFrame = new byte[previewWidth * previewHeight * 3 / 2];
         Camera.Parameters parameters = mCamera.getParameters();//获取各项参数
