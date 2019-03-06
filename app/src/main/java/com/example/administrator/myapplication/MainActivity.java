@@ -104,6 +104,8 @@ public class MainActivity extends BaseActivity implements MediaPlayer.OnPrepared
     private DlgProgress dlgProgress;
     private SmdtManager smdt;
     private RequestOptions options;
+    private int total=0;
+    private PlanInfo planInfo;
     private void play(ADModel adModel) {
         stopPlayer();
         if (adModel == null) {
@@ -134,7 +136,7 @@ public class MainActivity extends BaseActivity implements MediaPlayer.OnPrepared
                         mediaPlayer.setDataSource(media_file.getAbsolutePath());
                         mediaPlayer.setDisplay(main_surf1.getHolder());
                         mediaPlayer.setLooping(true);
-                        mediaPlayer.prepareAsync();
+                        mediaPlayer.prepare();
                     } catch (IOException e) {
                         e.printStackTrace();
                     }
@@ -515,8 +517,8 @@ public class MainActivity extends BaseActivity implements MediaPlayer.OnPrepared
                 return i;
             }
         });
+        planInfo.setTotal(20*adModelList.size());
         planInfo.setSecond(20);
-        planInfo.setTotal(4);
         planInfo.setPlanID(new_planID);
         planInfo.setAdModelList(adModelList);
         return planInfo;
@@ -552,11 +554,18 @@ public class MainActivity extends BaseActivity implements MediaPlayer.OnPrepared
 
     @Override
     public void onPrepared(MediaPlayer mp) {
-        adModelList.get(current_play).setDuration(mp.getDuration()/1000);
-        L.test("duration:" + nextTime);
-//        mp.getDuration();
         mediaPlayer.seekTo(curIndex);
         mediaPlayer.start();
+        if(adModelList.get(current_play).getDuration()!=mp.getDuration()/1000){
+            adModelList.get(current_play).setDuration(mp.getDuration()/1000);
+            planInfo.setAdModelList(adModelList);
+            PreferenceUtil.setString(MainActivity.this, "planInfo", planInfo.toString());
+            L.test("changeduation:" + mp.getDuration()/1000);
+        }
+
+
+//        mp.getDuration();
+
     }
 
     @Override
@@ -596,7 +605,7 @@ public class MainActivity extends BaseActivity implements MediaPlayer.OnPrepared
         if (!TextUtils.isEmpty(planjson)) {
 
             Gson gson = new Gson();
-            PlanInfo planInfo = gson.fromJson(planjson, PlanInfo.class);
+            planInfo = gson.fromJson(planjson, PlanInfo.class);
             L.test(planInfo.toString());
             if (planInfo != null && planInfo.getAdModelList().size() > 0) {
                 initPlan(planInfo);
@@ -676,8 +685,6 @@ public class MainActivity extends BaseActivity implements MediaPlayer.OnPrepared
     private void initPlan(PlanInfo planInfo) {
         if (planInfo != null && !TextUtils.isEmpty(planInfo.getPlanID()) && planInfo.getAdModelList() != null && planInfo.getAdModelList().size() > 0) {
             cur_planID = planInfo.getPlanID();
-            syncTime = planInfo.getTotal();
-            nextTime = planInfo.getSecond();
             adModelList = planInfo.getAdModelList();
 //            adModelList.get(0).setPlay_type(1);
 //            adModelList.get(1).setPlay_type(1);

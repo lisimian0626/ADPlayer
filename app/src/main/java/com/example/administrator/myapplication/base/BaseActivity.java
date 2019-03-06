@@ -22,7 +22,6 @@ import java.util.concurrent.TimeUnit;
 public abstract class BaseActivity extends AppCompatActivity {
     private String Tag = "BaseActivity";
     private ScheduledExecutorService mScheduledExecutorService;
-    public static int syncTime = 5;
     public static int nextTime = 20;
     private int count=0;
     @Override
@@ -128,10 +127,7 @@ public abstract class BaseActivity extends AppCompatActivity {
                 int mMinute = mCalendar.get(Calendar.MINUTE);
                 int mSecond = mCalendar.get(Calendar.SECOND);
                 L.d("minute:" + mMinute + "   second:" + mSecond);
-                if (mMinute != 0 && mMinute % syncTime == 0 && mSecond == 0) {
-                    L.d("同步");
-                    EventBusHelper.sendEvent(BusEvent.getEvent(EventBusId.syncTime));
-                }  else if (mSecond == 0) {
+                 if (mSecond == 0) {
                     EventBusHelper.sendEvent(BusEvent.getEvent(EventBusId.heartbeat));
                 } else if (mSecond == 30) {
                     EventBusHelper.sendEvent(BusEvent.getEvent(EventBusId.heartbeat));
