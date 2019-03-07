@@ -554,9 +554,14 @@ public class MainActivity extends BaseActivity implements MediaPlayer.OnPrepared
 
     @Override
     public void onPrepared(MediaPlayer mp) {
-        mediaPlayer.seekTo(curIndex);
-        mediaPlayer.start();
-        if(adModelList.get(current_play).getDuration()!=mp.getDuration()/1000){
+        int cur_duration=adModelList.get(current_play).getDuration();
+        if(curIndex>0){
+            mediaPlayer.seekTo(curIndex);
+            mediaPlayer.start();
+            nextTime=cur_duration-curIndex;
+            curIndex=0;
+        }
+        if(cur_duration!=mp.getDuration()/1000){
             adModelList.get(current_play).setDuration(mp.getDuration()/1000);
             planInfo.setAdModelList(adModelList);
             PreferenceUtil.setString(MainActivity.this, "planInfo", planInfo.toString());
@@ -773,9 +778,12 @@ public class MainActivity extends BaseActivity implements MediaPlayer.OnPrepared
                        lastTime=time-(curtime-adModelList.get(i).getDuration());
                        L.test("lastTime:"+lastTime+"   "+"server_play:"+String.valueOf(i)+"   "+"current_play:"+current_play+"   "
                                +"duration:"+Math.round(mediaPlayer.getDuration()/1000));
-                       if(current_play!=i&&Math.abs(Math.round(mediaPlayer.getDuration()/1000)-lastTime)>1){
+                       if(current_play!=i||Math.abs(Math.round(mediaPlayer.getDuration()/1000)-lastTime)>1){
                            curIndex= (int) (lastTime);
-//                           play(adModelList.get(i-1));
+                           L.test("同步");
+                           current_play=i;
+                           play(adModelList.get(current_play));
+
                        }
                        break;
                    }
