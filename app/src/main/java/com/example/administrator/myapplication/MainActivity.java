@@ -557,8 +557,8 @@ public class MainActivity extends BaseActivity implements MediaPlayer.OnPrepared
         int cur_duration=adModelList.get(current_play).getDuration();
         if(curIndex>0){
             mediaPlayer.seekTo(curIndex);
+            count=curIndex;
             mediaPlayer.start();
-            nextTime=cur_duration-curIndex;
             curIndex=0;
         }
         if(cur_duration!=mp.getDuration()/1000){

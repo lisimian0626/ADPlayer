@@ -23,7 +23,7 @@ public abstract class BaseActivity extends AppCompatActivity {
     private String Tag = "BaseActivity";
     private ScheduledExecutorService mScheduledExecutorService;
     public static int nextTime = 20;
-    private int count=0;
+    public static int count=0;
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
