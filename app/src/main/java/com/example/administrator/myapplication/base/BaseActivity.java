@@ -117,7 +117,8 @@ public abstract class BaseActivity extends AppCompatActivity {
             @Override
             public void run() {
                 count++;
-                if(nextTime==count){
+                L.d("nextTime:" + nextTime + "   count:" + count);
+                if(count>=nextTime){
                     EventBusHelper.sendEvent(BusEvent.getEvent(EventBusId.nextTime));
                     count=0;
                 }
@@ -126,7 +127,6 @@ public abstract class BaseActivity extends AppCompatActivity {
                 mCalendar.setTimeInMillis(time);
                 int mMinute = mCalendar.get(Calendar.MINUTE);
                 int mSecond = mCalendar.get(Calendar.SECOND);
-                L.d("minute:" + mMinute + "   second:" + mSecond);
                  if (mSecond == 0) {
                     EventBusHelper.sendEvent(BusEvent.getEvent(EventBusId.heartbeat));
                 } else if (mSecond == 30) {

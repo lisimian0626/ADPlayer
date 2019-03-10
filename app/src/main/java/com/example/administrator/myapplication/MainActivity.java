@@ -104,8 +104,9 @@ public class MainActivity extends BaseActivity implements MediaPlayer.OnPrepared
     private DlgProgress dlgProgress;
     private SmdtManager smdt;
     private RequestOptions options;
-    private int total=0;
+    private int total = 0;
     private PlanInfo planInfo;
+
     private void play(ADModel adModel) {
         stopPlayer();
         if (adModel == null) {
@@ -127,11 +128,15 @@ public class MainActivity extends BaseActivity implements MediaPlayer.OnPrepared
             File media_file = TConst.getFileByUrl(adModel.getVideo_url());
             if (media_file == null) {
                 main_surf1.setVisibility(View.GONE);
+                if (adModel.getVideo_url() != null) {
+                    L.test("download:" + adModel.getVideo_url());
+                    startDownload(adModel.getVideo_url());
+                }
             } else {
                 if (media_file.exists()) {
                     main_surf1.setVisibility(View.VISIBLE);
                     try {
-                        nextTime=adModel.getDuration();
+                        nextTime = adModel.getDuration();
                         mediaPlayer.reset();
                         mediaPlayer.setDataSource(media_file.getAbsolutePath());
                         mediaPlayer.setDisplay(main_surf1.getHolder());
@@ -142,6 +147,7 @@ public class MainActivity extends BaseActivity implements MediaPlayer.OnPrepared
                     }
                 } else {
                     if (adModel.getVideo_url() != null) {
+                        L.test("download:" + adModel.getVideo_url());
                         startDownload(adModel.getVideo_url());
                     }
                 }
@@ -153,6 +159,10 @@ public class MainActivity extends BaseActivity implements MediaPlayer.OnPrepared
             File image_file = TConst.getFileByUrl(adModel.getImage_url());
             if (image_file == null) {
                 iv_pic.setVisibility(View.GONE);
+                if (adModel.getVideo_url() != null) {
+                    L.test("download:" + adModel.getImage_url());
+                    startDownload(adModel.getImage_url());
+                }
             } else {
                 if (image_file.exists()) {
                     iv_pic.setVisibility(View.VISIBLE);
@@ -191,7 +201,7 @@ public class MainActivity extends BaseActivity implements MediaPlayer.OnPrepared
 //                break;
 //        }
         cur_ADId = adModel.getID();
-        nextTime=adModel.getDuration();
+        nextTime = adModel.getDuration();
     }
 
     private void initPlayer() {
@@ -423,12 +433,9 @@ public class MainActivity extends BaseActivity implements MediaPlayer.OnPrepared
         isDownLoading = true;
         tv_process.setVisibility(View.VISIBLE);
         mTaskList.clear();
-        File file = TConst.getFileByUrl(downloadUrl);
-        if (!file.exists()) {
-            BaseDownloadTask task = FileDownloader.getImpl().create(downloadUrl)
-                    .setPath(TConst.getApkDir() + TConst.getFileNameByUrl(downloadUrl));
-            mTaskList.add(task);
-        }
+        BaseDownloadTask task = FileDownloader.getImpl().create(downloadUrl)
+                .setPath(TConst.getApkDir() + TConst.getFileNameByUrl(downloadUrl));
+        mTaskList.add(task);
 
         if (mTaskList.size() == 0) {
             //下载完成
@@ -517,7 +524,7 @@ public class MainActivity extends BaseActivity implements MediaPlayer.OnPrepared
                 return i;
             }
         });
-        planInfo.setTotal(20*adModelList.size());
+        planInfo.setTotal(20 * adModelList.size());
         planInfo.setSecond(20);
         planInfo.setPlanID(new_planID);
         planInfo.setAdModelList(adModelList);
@@ -554,18 +561,18 @@ public class MainActivity extends BaseActivity implements MediaPlayer.OnPrepared
 
     @Override
     public void onPrepared(MediaPlayer mp) {
-        int cur_duration=adModelList.get(current_play).getDuration();
-        if(curIndex>0){
+        int cur_duration = adModelList.get(current_play).getDuration();
+        if (curIndex > 0) {
             mediaPlayer.seekTo(curIndex);
-            count=curIndex;
-            mediaPlayer.start();
-            curIndex=0;
+            count = curIndex;
+            curIndex = 0;
         }
-        if(cur_duration!=mp.getDuration()/1000){
-            adModelList.get(current_play).setDuration(mp.getDuration()/1000);
+        mediaPlayer.start();
+        if (cur_duration != mp.getDuration() / 1000) {
+            adModelList.get(current_play).setDuration(mp.getDuration() / 1000);
             planInfo.setAdModelList(adModelList);
             PreferenceUtil.setString(MainActivity.this, "planInfo", planInfo.toString());
-            L.test("changeduation:" + mp.getDuration()/1000);
+            L.test("changeduation:" + mp.getDuration() / 1000);
         }
 
 
@@ -640,14 +647,14 @@ public class MainActivity extends BaseActivity implements MediaPlayer.OnPrepared
 
     @Override
     public void initData() {
-        String onTime=PreferenceUtil.getString(MainActivity.this, "onTime", "");
-        String offTime=PreferenceUtil.getString(MainActivity.this, "offTime", "");
-        if (!TextUtils.isEmpty(onTime) &&!TextUtils.isEmpty(offTime)){
+        String onTime = PreferenceUtil.getString(MainActivity.this, "onTime", "");
+        String offTime = PreferenceUtil.getString(MainActivity.this, "offTime", "");
+        if (!TextUtils.isEmpty(onTime) && !TextUtils.isEmpty(offTime)) {
             SmdtManager smdt = SmdtManager.create(this);
-            smdt.smdtSetTimingSwitchMachine (offTime, onTime,"1");
-            L.test("setTime------"+"offTime:"+offTime+"----"+"onTime:"+onTime);
+            smdt.smdtSetTimingSwitchMachine(offTime, onTime, "1");
+            L.test("setTime------" + "offTime:" + offTime + "----" + "onTime:" + onTime);
         }
-        cameraView.setPreviewResolution(1080,650);
+        cameraView.setPreviewResolution(1080, 650);
 //
 //        int screen_number = smdt.getHdmiinStatus();
 //        L.test("screen_number:"+String.valueOf(screen_number));
@@ -658,8 +665,8 @@ public class MainActivity extends BaseActivity implements MediaPlayer.OnPrepared
         if (PreferenceUtil.getBoolean(MainActivity.this, "camera", true)) {
 //            cameraView.setPreviewRotation(180);
 
-            boolean camera=cameraView.startCamera();
-            L.test("camera:"+camera);
+            boolean camera = cameraView.startCamera();
+            L.test("camera:" + camera);
         }
     }
 
@@ -720,8 +727,8 @@ public class MainActivity extends BaseActivity implements MediaPlayer.OnPrepared
         //Json的解析类对象
         JsonParser parser = new JsonParser();
         try {
-            String heartbeat=responseBody.string();
-            L.test("heartbeat:"+heartbeat);
+            String heartbeat = responseBody.string();
+            L.test("heartbeat:" + heartbeat);
             JsonArray jsonArray = parser.parse(heartbeat).getAsJsonArray();
             Gson gson = new Gson();
             ArrayList<HeartbeatInfo> heartbeatInfoArrayList = new ArrayList<>();
@@ -741,15 +748,15 @@ public class MainActivity extends BaseActivity implements MediaPlayer.OnPrepared
                 L.test(versionJson.toString());
                 mainPresenter.fetchApkInfo(versionJson.toString());
             }
-            String off=heartbeatInfoArrayList.get(0).getOffTime();
-            String on=heartbeatInfoArrayList.get(0).getOnTime();
-            if(!TextUtils.isEmpty(off)&&!TextUtils.isEmpty(on)){
-                if(!PreferenceUtil.getString(MainActivity.this, "offTime", "").equals(off)||!PreferenceUtil.getString(MainActivity.this, "onTime", "").equals(on)){
+            String off = heartbeatInfoArrayList.get(0).getOffTime();
+            String on = heartbeatInfoArrayList.get(0).getOnTime();
+            if (!TextUtils.isEmpty(off) && !TextUtils.isEmpty(on)) {
+                if (!PreferenceUtil.getString(MainActivity.this, "offTime", "").equals(off) || !PreferenceUtil.getString(MainActivity.this, "onTime", "").equals(on)) {
                     PreferenceUtil.setString(MainActivity.this, "offTime", off);
                     PreferenceUtil.setString(MainActivity.this, "onTime", on);
                     SmdtManager smdt = SmdtManager.create(this);
-                    smdt.smdtSetTimingSwitchMachine (off, on,"1");
-                    L.test("setTimeOnHeartBeat------"+"offTime:"+off+"----"+"onTime:"+on);
+                    smdt.smdtSetTimingSwitchMachine(off, on, "1");
+                    L.test("setTimeOnHeartBeat------" + "offTime:" + off + "----" + "onTime:" + on);
                 }
             }
 
@@ -761,32 +768,35 @@ public class MainActivity extends BaseActivity implements MediaPlayer.OnPrepared
                 L.test(getPlanJson.toString());
                 mainPresenter.fetchPlan(getPlanJson.toString());
             }
-            long total=0;
-            long frameFlag=heartbeatInfoArrayList.get(0).getFrameFlag();
-            for (ADModel adModel:adModelList){
-                total+=adModel.getDuration();
+            long total = 0;
+            long frameFlag = heartbeatInfoArrayList.get(0).getFrameFlag();
+            for (ADModel adModel : adModelList) {
+                total += adModel.getDuration();
             }
-            if(frameFlag!=0&&total!=0){
-                long time=frameFlag%(total);
-                long lastTime=0;
-                int curtime=0;
-                L.test("FrameFlag:"+frameFlag+"---"+"total:"+total+"----"+"time"+time);
-                for(int i=0; i<adModelList.size();i++){
-                   curtime+=adModelList.get(i).getDuration();
+            if (frameFlag != 0 && total != 0) {
+                long time = frameFlag % (total);
+                long lastTime = 0;
+                int curtime = 0;
+                L.test("FrameFlag:" + frameFlag + "---" + "total:" + total + "----" + "time" + time);
+                for (int i = 0; i < adModelList.size(); i++) {
+                    curtime += adModelList.get(i).getDuration();
 
-                   if(curtime>time){
-                       lastTime=time-(curtime-adModelList.get(i).getDuration());
-                       L.test("lastTime:"+lastTime+"   "+"server_play:"+String.valueOf(i)+"   "+"current_play:"+current_play+"   "
-                               +"duration:"+Math.round(mediaPlayer.getDuration()/1000));
-                       if(current_play!=i||Math.abs(Math.round(mediaPlayer.getDuration()/1000)-lastTime)>1){
-                           curIndex= (int) (lastTime);
-                           L.test("同步");
-                           current_play=i;
-                           play(adModelList.get(current_play));
+                    if (curtime > time) {
+                        lastTime = time - (curtime - adModelList.get(i).getDuration());
+                        int playerDuration = mediaPlayer.getCurrentPosition() / 1000;
+                        L.test("lastTime:" + lastTime + "   " + "server_play:" + String.valueOf(i) + "   " + "current_play:" + current_play + "   "
+                                + "playerduration:" + playerDuration);
+                        if (playerDuration < 0)
+                            return;
+                        if (current_play != i || Math.abs(playerDuration - lastTime) > 1) {
+                            curIndex = (int) (lastTime);
+                            L.test("同步");
+                            current_play = i;
+                            play(adModelList.get(current_play));
 
-                       }
-                       break;
-                   }
+                        }
+                        break;
+                    }
                 }
             }
         } catch (IOException e) {
