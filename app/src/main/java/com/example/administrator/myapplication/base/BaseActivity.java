@@ -121,6 +121,8 @@ public abstract class BaseActivity extends AppCompatActivity {
                 if(count>=nextTime){
                     EventBusHelper.sendEvent(BusEvent.getEvent(EventBusId.nextTime));
                     count=0;
+                }else if(count>=100){
+                     count=0;
                 }
                 long time = System.currentTimeMillis();
                 Calendar mCalendar = Calendar.getInstance();

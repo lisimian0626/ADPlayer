@@ -104,9 +104,8 @@ public class MainActivity extends BaseActivity implements MediaPlayer.OnPrepared
     private DlgProgress dlgProgress;
     private SmdtManager smdt;
     private RequestOptions options;
-    private int total = 0;
+    private int total=0;
     private PlanInfo planInfo;
-
     private void play(ADModel adModel) {
         stopPlayer();
         if (adModel == null) {
@@ -524,8 +523,8 @@ public class MainActivity extends BaseActivity implements MediaPlayer.OnPrepared
                 return i;
             }
         });
-        planInfo.setTotal(20 * adModelList.size());
-        planInfo.setSecond(20);
+        planInfo.setTotal(20000*adModelList.size());
+        planInfo.setSecond(20000);
         planInfo.setPlanID(new_planID);
         planInfo.setAdModelList(adModelList);
         return planInfo;
@@ -561,18 +560,19 @@ public class MainActivity extends BaseActivity implements MediaPlayer.OnPrepared
 
     @Override
     public void onPrepared(MediaPlayer mp) {
-        int cur_duration = adModelList.get(current_play).getDuration();
-        if (curIndex > 0) {
+        int cur_duration=adModelList.get(current_play).getDuration();
+        if(curIndex>0){
             mediaPlayer.seekTo(curIndex);
-            count = curIndex;
-            curIndex = 0;
+            count=curIndex/1000;
+            L.test("onPrepared:"+"curIndex:"+curIndex+"   count:"+count);
+            curIndex=0;
         }
         mediaPlayer.start();
-        if (cur_duration != mp.getDuration() / 1000) {
-            adModelList.get(current_play).setDuration(mp.getDuration() / 1000);
+        if(cur_duration>0&&cur_duration!=mp.getDuration()){
+            adModelList.get(current_play).setDuration(mp.getDuration());
             planInfo.setAdModelList(adModelList);
             PreferenceUtil.setString(MainActivity.this, "planInfo", planInfo.toString());
-            L.test("changeduation:" + mp.getDuration() / 1000);
+            L.test("changeduation:" + mp.getDuration());
         }
 
 
@@ -768,10 +768,10 @@ public class MainActivity extends BaseActivity implements MediaPlayer.OnPrepared
                 L.test(getPlanJson.toString());
                 mainPresenter.fetchPlan(getPlanJson.toString());
             }
-            long total = 0;
-            long frameFlag = heartbeatInfoArrayList.get(0).getFrameFlag();
-            for (ADModel adModel : adModelList) {
-                total += adModel.getDuration();
+            long total=0;
+            long frameFlag=heartbeatInfoArrayList.get(0).getFrameFlag()*1000;
+            for (ADModel adModel:adModelList){
+                total+=adModel.getDuration();
             }
             if (frameFlag != 0 && total != 0) {
                 long time = frameFlag % (total);
@@ -781,22 +781,19 @@ public class MainActivity extends BaseActivity implements MediaPlayer.OnPrepared
                 for (int i = 0; i < adModelList.size(); i++) {
                     curtime += adModelList.get(i).getDuration();
 
-                    if (curtime > time) {
-                        lastTime = time - (curtime - adModelList.get(i).getDuration());
-                        int playerDuration = mediaPlayer.getCurrentPosition() / 1000;
-                        L.test("lastTime:" + lastTime + "   " + "server_play:" + String.valueOf(i) + "   " + "current_play:" + current_play + "   "
-                                + "playerduration:" + playerDuration);
-                        if (playerDuration < 0)
-                            return;
-                        if (current_play != i || Math.abs(playerDuration - lastTime) > 1) {
-                            curIndex = (int) (lastTime);
-                            L.test("同步");
-                            current_play = i;
-                            play(adModelList.get(current_play));
+                   if(curtime>time){
+                       lastTime=time-(curtime-adModelList.get(i).getDuration());
+                       L.test("lastTime:"+lastTime+"   "+"server_play:"+String.valueOf(i)+"   "+"current_play:"+current_play+"   "
+                               +"duration:"+mediaPlayer.getDuration());
+                       if(current_play!=i||Math.abs(mediaPlayer.getDuration()-lastTime)>500){
+                           curIndex= (int) lastTime;
+                           L.test("同步");
+                           current_play=i;
+                           play(adModelList.get(current_play));
 
-                        }
-                        break;
-                    }
+                       }
+                       break;
+                   }
                 }
             }
         } catch (IOException e) {
