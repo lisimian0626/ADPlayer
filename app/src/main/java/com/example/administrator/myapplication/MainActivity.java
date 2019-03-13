@@ -761,14 +761,18 @@ public class MainActivity extends BaseActivity implements MediaPlayer.OnPrepared
 
                    if(curtime>time){
                        lastTime=time-(curtime-adModelList.get(i).getDuration());
+                       int curduration=mediaPlayer.getCurrentPosition();
                        L.test("lastTime:"+lastTime+"   "+"server_play:"+String.valueOf(i)+"   "+"current_play:"+current_play+"   "
-                               +"duration:"+mediaPlayer.getCurrentPosition());
-                       if(current_play!=i||Math.abs(mediaPlayer.getCurrentPosition()-lastTime)>300){
-                           curIndex= (int) lastTime;
-                           L.test("同步");
-                           current_play=i;
-                           play(adModelList.get(current_play));
-
+                               +"duration:"+curduration);
+                       if(lastTime<500||curduration<500||(adModelList.get(i).getDuration()-curduration<500)){
+                           L.test("状态异常");
+                       }else{
+                           if(current_play!=i||Math.abs(mediaPlayer.getCurrentPosition()-lastTime)>300){
+                               curIndex= (int) lastTime;
+                               L.test("同步");
+                               current_play=i;
+                               play(adModelList.get(current_play));
+                           }
                        }
                        break;
                    }
