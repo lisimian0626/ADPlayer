@@ -22,7 +22,8 @@ import java.util.concurrent.TimeUnit;
 public abstract class BaseActivity extends AppCompatActivity {
     private String Tag = "BaseActivity";
     private ScheduledExecutorService mScheduledExecutorService;
-    public static int nextTime = 20;
+    private ScheduledExecutorService mScheduledHreatbeatService;
+    public static int nextTime = 20*1000;
     public static int count=0;
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -98,11 +99,18 @@ public abstract class BaseActivity extends AppCompatActivity {
     }
 
     protected void startScreenTimer() {
-        if (mScheduledExecutorService != null && !mScheduledExecutorService.isShutdown())
-            return;
-        mScheduledExecutorService = java.util.concurrent.Executors.newScheduledThreadPool(1);
-        scheduleAtFixedRate(mScheduledExecutorService);
+        if (mScheduledExecutorService != null && !mScheduledExecutorService.isShutdown()){
 
+        }else{
+            mScheduledExecutorService = java.util.concurrent.Executors.newScheduledThreadPool(1);
+            scheduleAtFixedRate(mScheduledExecutorService);
+        }
+        if(mScheduledHreatbeatService != null && !mScheduledHreatbeatService.isShutdown()){
+
+        }else{
+            mScheduledHreatbeatService = java.util.concurrent.Executors.newScheduledThreadPool(1);
+            scheduleHeartBeat(mScheduledHreatbeatService);
+        }
     }
 
     private void stopScreenTimer() {
@@ -110,34 +118,46 @@ public abstract class BaseActivity extends AppCompatActivity {
             mScheduledExecutorService.shutdownNow();
             mScheduledExecutorService = null;
         }
+        if (mScheduledHreatbeatService != null) {
+            mScheduledHreatbeatService.shutdownNow();
+            mScheduledHreatbeatService = null;
+        }
     }
 
     private void scheduleAtFixedRate(ScheduledExecutorService service) {
         service.scheduleAtFixedRate(new Runnable() {
             @Override
             public void run() {
-                count++;
+                count=count+100;
                 L.d("nextTime:" + nextTime + "   count:" + count);
                 if(count>=nextTime){
                     EventBusHelper.sendEvent(BusEvent.getEvent(EventBusId.nextTime));
                     count=0;
-                }else if(count>=100){
+                }else if(count>=100*1000){
                      count=0;
                 }
-                long time = System.currentTimeMillis();
-                Calendar mCalendar = Calendar.getInstance();
-                mCalendar.setTimeInMillis(time);
-                int mMinute = mCalendar.get(Calendar.MINUTE);
-                int mSecond = mCalendar.get(Calendar.SECOND);
-                 if (mSecond == 0) {
-                    EventBusHelper.sendEvent(BusEvent.getEvent(EventBusId.heartbeat));
-                } else if (mSecond == 30) {
-                    EventBusHelper.sendEvent(BusEvent.getEvent(EventBusId.heartbeat));
-                }
+//                long time = System.currentTimeMillis();
+//                Calendar mCalendar = Calendar.getInstance();
+//                mCalendar.setTimeInMillis(time);
+//                int mMinute = mCalendar.get(Calendar.MINUTE);
+//                int mSecond = mCalendar.get(Calendar.SECOND);
+//                 if (mSecond == 0) {
+//                    EventBusHelper.sendEvent(BusEvent.getEvent(EventBusId.heartbeat));
+//                } else if (mSecond == 30) {
+//                    EventBusHelper.sendEvent(BusEvent.getEvent(EventBusId.heartbeat));
+//                }
             }
-        }, 1, 1, TimeUnit.SECONDS);
+        }, 100, 100, TimeUnit.MILLISECONDS);
     }
 
+    private void scheduleHeartBeat(ScheduledExecutorService service) {
+        service.scheduleAtFixedRate(new Runnable() {
+            @Override
+            public void run() {
+                    EventBusHelper.sendEvent(BusEvent.getEvent(EventBusId.heartbeat));
+            }
+        }, 1, 30, TimeUnit.SECONDS);
+    }
     @Override
     protected void onDestroy() {
         super.onDestroy();

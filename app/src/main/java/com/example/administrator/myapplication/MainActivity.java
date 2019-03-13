@@ -135,7 +135,6 @@ public class MainActivity extends BaseActivity implements MediaPlayer.OnPrepared
                 if (media_file.exists()) {
                     main_surf1.setVisibility(View.VISIBLE);
                     try {
-                        nextTime = adModel.getDuration();
                         mediaPlayer.reset();
                         mediaPlayer.setDataSource(media_file.getAbsolutePath());
                         mediaPlayer.setDisplay(main_surf1.getHolder());
@@ -176,29 +175,6 @@ public class MainActivity extends BaseActivity implements MediaPlayer.OnPrepared
                 }
             }
         }
-
-
-//        }
-//        switch (adModel.getPlay_type()) {
-//            case 1:
-//                break;
-//            case 2:
-//                File image_file = TConst.getFileByUrl(adModel.getImage_url());
-//                if (image_file == null)
-//                    return;
-//                if (image_file.exists()) {
-//                    if(options==null){
-//                        options=initOption();
-//                    }
-//                    Glide.with(this).load(image_file).apply(options).into(iv_pic);
-//                } else {
-//                    if (adModel.getImage_url() == null)
-//                        return;
-//                    startDownload(adModel.getImage_url());
-//                }
-////                iv_pic.setImageResource(Integer.valueOf(adModel.getVideo_url()));
-//                break;
-//        }
         cur_ADId = adModel.getID();
         nextTime = adModel.getDuration();
     }
@@ -563,7 +539,7 @@ public class MainActivity extends BaseActivity implements MediaPlayer.OnPrepared
         int cur_duration=adModelList.get(current_play).getDuration();
         if(curIndex>0){
             mediaPlayer.seekTo(curIndex);
-            count=curIndex/1000;
+            count=curIndex;
             L.test("onPrepared:"+"curIndex:"+curIndex+"   count:"+count);
             curIndex=0;
         }
@@ -579,6 +555,7 @@ public class MainActivity extends BaseActivity implements MediaPlayer.OnPrepared
 //        mp.getDuration();
 
     }
+
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -768,14 +745,15 @@ public class MainActivity extends BaseActivity implements MediaPlayer.OnPrepared
                 L.test(getPlanJson.toString());
                 mainPresenter.fetchPlan(getPlanJson.toString());
             }
-            long total=0;
-            long frameFlag=heartbeatInfoArrayList.get(0).getFrameFlag()*1000;
+            int total=0;
+            double frameFlag=heartbeatInfoArrayList.get(0).getFrameFlag();
+            int intframeFlag= (int) (frameFlag*1000);
             for (ADModel adModel:adModelList){
                 total+=adModel.getDuration();
             }
             if (frameFlag != 0 && total != 0) {
-                long time = frameFlag % (total);
-                long lastTime = 0;
+                int time = intframeFlag % (total);
+                int lastTime = 0;
                 int curtime = 0;
                 L.test("FrameFlag:" + frameFlag + "---" + "total:" + total + "----" + "time" + time);
                 for (int i = 0; i < adModelList.size(); i++) {
@@ -784,8 +762,8 @@ public class MainActivity extends BaseActivity implements MediaPlayer.OnPrepared
                    if(curtime>time){
                        lastTime=time-(curtime-adModelList.get(i).getDuration());
                        L.test("lastTime:"+lastTime+"   "+"server_play:"+String.valueOf(i)+"   "+"current_play:"+current_play+"   "
-                               +"duration:"+mediaPlayer.getDuration());
-                       if(current_play!=i||Math.abs(mediaPlayer.getDuration()-lastTime)>500){
+                               +"duration:"+mediaPlayer.getCurrentPosition());
+                       if(current_play!=i||Math.abs(mediaPlayer.getCurrentPosition()-lastTime)>300){
                            curIndex= (int) lastTime;
                            L.test("同步");
                            current_play=i;
