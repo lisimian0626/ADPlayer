@@ -60,11 +60,11 @@ public class CameraView extends SurfaceView implements SurfaceHolder.Callback, C
             return false;
         }
         stopCamera();
-        mCamera = Camera.open(mCamId);
-        mYuvPreviewFrame = new byte[previewWidth * previewHeight * 3 / 2];
-        Camera.Parameters parameters = mCamera.getParameters();//获取各项参数
-        Camera.Size previewSize;
         try {
+            mCamera = Camera.open(mCamId);
+            mYuvPreviewFrame = new byte[previewWidth * previewHeight * 3 / 2];
+            Camera.Parameters parameters = mCamera.getParameters();//获取各项参数
+            Camera.Size previewSize;
             previewSize = findFitPreResolution(parameters);
             if(previewSize!=null){
                 parameters.setPreviewSize(previewSize.width, previewSize.height);// 设置预览大小

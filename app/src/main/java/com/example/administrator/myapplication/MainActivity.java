@@ -227,7 +227,7 @@ public class MainActivity extends BaseActivity implements MediaPlayer.OnPrepared
                 String jsonMeal = PreferenceUtil.getString(MainActivity.this, "planInfo", "");
                 if (!TextUtils.isEmpty(jsonMeal)) {
                     Gson gson = new Gson();
-                    PlanInfo planInfo = gson.fromJson(jsonMeal, PlanInfo.class);
+                    planInfo = gson.fromJson(jsonMeal, PlanInfo.class);
                     if (planInfo != null && planInfo.getAdModelList().size() > 0) {
                         initPlan(planInfo);
                         play();
@@ -260,7 +260,11 @@ public class MainActivity extends BaseActivity implements MediaPlayer.OnPrepared
                 } else {
                     current_play = 0;
                 }
-                play(adModelList.get(current_play));
+                try {
+                    play(adModelList.get(current_play));
+                }catch (Exception e){
+                    e.printStackTrace();
+                }
                 break;
             case EventBusId.heartbeat:
                 HeartBeatJson heartBeatJson = new HeartBeatJson();
@@ -511,7 +515,11 @@ public class MainActivity extends BaseActivity implements MediaPlayer.OnPrepared
             @Override
             public void run() {
                 if (isSurfaceCreated && adModelList != null && adModelList.size() > 0)
-                    play(adModelList.get(current_play));
+                    try {
+                        play(adModelList.get(current_play));
+                    }catch (Exception e){
+                        e.printStackTrace();
+                    }
             }
         }, 1000);
     }
@@ -544,7 +552,7 @@ public class MainActivity extends BaseActivity implements MediaPlayer.OnPrepared
             curIndex=0;
         }
         mediaPlayer.start();
-        if(cur_duration>0&&cur_duration!=mp.getDuration()){
+        if(cur_duration>0&&cur_duration!=mp.getDuration()&&planInfo!=null){
             adModelList.get(current_play).setDuration(mp.getDuration());
             planInfo.setAdModelList(adModelList);
             PreferenceUtil.setString(MainActivity.this, "planInfo", planInfo.toString());
@@ -771,7 +779,11 @@ public class MainActivity extends BaseActivity implements MediaPlayer.OnPrepared
                                curIndex= (int) lastTime;
                                L.test("同步");
                                current_play=i;
-                               play(adModelList.get(current_play));
+                               try {
+                                   play(adModelList.get(current_play));
+                               }catch (Exception e){
+                                   e.printStackTrace();
+                               }
                            }
                        }
                        break;
