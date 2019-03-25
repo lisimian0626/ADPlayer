@@ -2,6 +2,8 @@ package com.example.administrator.myapplication;
 
 import android.app.smdt.SmdtManager;
 import android.content.Intent;
+import android.graphics.Color;
+import android.graphics.PixelFormat;
 import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.Bundle;
@@ -20,6 +22,7 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
+import android.widget.VideoView;
 
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.engine.DiskCacheStrategy;
@@ -82,6 +85,7 @@ public class MainActivity extends BaseActivity implements MediaPlayer.OnPrepared
     LinearLayout lin_mode1;
     ImageView iv_pic;
     SurfaceView main_surf1;
+    VideoView videoView;
     private CameraView cameraView;
     //    private RelativeLayout layout_main;
     int current_play = 0;
@@ -115,7 +119,7 @@ public class MainActivity extends BaseActivity implements MediaPlayer.OnPrepared
         cur_Ad = adModel;
         tv_tips.setText("当前播放：" + "广告" + adModel.getID() + "|" + "模板" + adModel.getPlay_type());
         cameraView.setVisibility(adModel.getPlay_type() == 1 ? View.VISIBLE : View.GONE);
-        if (mediaPlayer == null) {
+        if (videoView == null) {
             CreateMediaPlayer();
         }
         if (!isSurfaceCreated) {
@@ -138,8 +142,7 @@ public class MainActivity extends BaseActivity implements MediaPlayer.OnPrepared
                         mediaPlayer.reset();
                         mediaPlayer.setDataSource(media_file.getAbsolutePath());
                         mediaPlayer.setDisplay(main_surf1.getHolder());
-                        mediaPlayer.setLooping(true);
-                        mediaPlayer.prepare();
+                        mediaPlayer.prepareAsync();
                     } catch (IOException e) {
                         e.printStackTrace();
                     }
@@ -196,15 +199,18 @@ public class MainActivity extends BaseActivity implements MediaPlayer.OnPrepared
     }
 
     private void CreateSurfaceView() {
-//        main_surf2.getHolder().setType(SurfaceHolder.SURFACE_TYPE_PUSH_BUFFERS);
+        main_surf1.getHolder().setType(SurfaceHolder.SURFACE_TYPE_PUSH_BUFFERS);
         main_surf1.setVisibility(View.VISIBLE);
         main_surf1.getHolder().setKeepScreenOn(true);
+        main_surf1.setZOrderOnTop(true);
+        main_surf1.getHolder().setFormat(PixelFormat.TRANSLUCENT);
         main_surf1.getHolder().addCallback(new SurfaceCallback());
     }
 
     private void stopPlayer() {
         isPlaying = false;
-        if (mediaPlayer != null) {
+        if (mediaPlayer != null&&mediaPlayer.isPlaying()) {
+            mediaPlayer.stop();
             mediaPlayer.release();
             mediaPlayer = null;
         }
@@ -428,8 +434,9 @@ public class MainActivity extends BaseActivity implements MediaPlayer.OnPrepared
             public void onDownloadTaskError(BaseDownloadTask task, Throwable e) {
                 if (task == null || task.getFilename() == null) {
                     tv_process.setText("文件下载失败!");
+                }else{
+                    tv_process.setText(task.getFilename() + "   文件下载失败!");
                 }
-                tv_process.setText(task.getFilename() + "   文件下载失败!");
                 L.test("加载文件失败,请重新下载！");
             }
 
@@ -536,6 +543,14 @@ public class MainActivity extends BaseActivity implements MediaPlayer.OnPrepared
 
     @Override
     public void onPrepared(MediaPlayer mp) {
+        mp.setOnInfoListener(new MediaPlayer.OnInfoListener() {
+            @Override
+            public boolean onInfo(MediaPlayer mp, int what, int extra) {
+                if (what == MediaPlayer.MEDIA_INFO_VIDEO_RENDERING_START)
+                    main_surf1.setBackgroundColor(Color.TRANSPARENT);
+                return true;
+            }
+        });
         int cur_duration=adModelList.get(current_play).getDuration();
         if(curIndex>0){
             mediaPlayer.seekTo(curIndex);

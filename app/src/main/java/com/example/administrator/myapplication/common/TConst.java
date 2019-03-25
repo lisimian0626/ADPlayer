@@ -31,7 +31,7 @@ public class TConst {
 //    public static final String BASE_URL = "http://minorder.beidousat.com";
 //    public static final String VERSION_UPDATE_URL = "http://m.beidousat.com/";
 
-    public static final int normal_duration = 20; //默认播放时长
+    public static final int normal_duration = 20*1000; //默认播放时长
 
     /**
      * http 状态码

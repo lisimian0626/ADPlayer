@@ -62,6 +62,12 @@
         android:layout_weight="1230"
         android:orientation="vertical"
         >
+        <!--<VideoView-->
+            <!--android:id="@+id/videoView"-->
+            <!--android:layout_width="match_parent"-->
+            <!--android:layout_height="0dp"-->
+            <!--android:layout_weight="850"-->
+            <!--android:layout_above="@+id/iv_pic"/>-->
         <SurfaceView
             android:id="@+id/main_surf"
             android:layout_width="match_parent"
