@@ -85,7 +85,6 @@ public class MainActivity extends BaseActivity implements MediaPlayer.OnPrepared
     LinearLayout lin_mode1;
     ImageView iv_pic;
     SurfaceView main_surf1;
-    VideoView videoView;
     private CameraView cameraView;
     //    private RelativeLayout layout_main;
     int current_play = 0;
@@ -119,7 +118,7 @@ public class MainActivity extends BaseActivity implements MediaPlayer.OnPrepared
         cur_Ad = adModel;
         tv_tips.setText("当前播放：" + "广告" + adModel.getID() + "|" + "模板" + adModel.getPlay_type());
         cameraView.setVisibility(adModel.getPlay_type() == 1 ? View.VISIBLE : View.GONE);
-        if (videoView == null) {
+        if (mediaPlayer == null) {
             CreateMediaPlayer();
         }
         if (!isSurfaceCreated) {
@@ -480,7 +479,7 @@ public class MainActivity extends BaseActivity implements MediaPlayer.OnPrepared
             List<PlanListInfo> plan = maplist.get(i);
             ADModel adModel = new ADModel();
             for (PlanListInfo data : plan) {
-                if (data.getFileType().equals("PNG")) {
+                if (data.getFileType().equals("PNG")||data.getFileType().equals("JPG")) {
                     adModel.setID(String.valueOf(data.getGroupFlag()));
                     adModel.setImage_url(data.getURL());
                     adModel.setPlay_type(data.getPlaylistSubType());
