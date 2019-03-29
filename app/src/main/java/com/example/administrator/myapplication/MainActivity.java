@@ -784,19 +784,41 @@ public class MainActivity extends BaseActivity implements MediaPlayer.OnPrepared
                    if(curtime>time){
                        lastTime=time-(curtime-adModelList.get(i).getDuration());
                        int curduration=mediaPlayer.getCurrentPosition();
-                       L.test("lastTime:"+lastTime+"   "+"server_play:"+String.valueOf(i)+"   "+"current_play:"+current_play+"   "
-                               +"duration:"+curduration);
-                       if(lastTime<500||curduration<500||(adModelList.get(i).getDuration()-curduration<500)){
-                           L.test("状态异常");
+
+                       if(TextUtils.isEmpty(adModelList.get(i).getVideo_url())){
+                           //图片同步
+                           L.test("lastTime:"+lastTime+"   "+"server_play:"+String.valueOf(i)+"   "+"current_play:"+current_play+"   "
+                                   +"duration:"+nextTime);
+                           if(lastTime<500||nextTime<500){
+                               L.test("状态异常");
+                           }else{
+                               if(current_play!=i||Math.abs(nextTime-lastTime)>300){
+                                   nextTime= lastTime;
+                                   L.test("同步图片");
+                                   current_play=i;
+                                   try {
+                                       play(adModelList.get(current_play));
+                                   }catch (Exception e){
+                                       e.printStackTrace();
+                                   }
+                               }
+                           }
                        }else{
-                           if(current_play!=i||Math.abs(mediaPlayer.getCurrentPosition()-lastTime)>300){
-                               curIndex= (int) lastTime;
-                               L.test("同步");
-                               current_play=i;
-                               try {
-                                   play(adModelList.get(current_play));
-                               }catch (Exception e){
-                                   e.printStackTrace();
+                           //视频同步
+                           L.test("lastTime:"+lastTime+"   "+"server_play:"+String.valueOf(i)+"   "+"current_play:"+current_play+"   "
+                                   +"duration:"+curduration);
+                           if(lastTime<500||curduration<500||(adModelList.get(i).getDuration()-curduration<500)){
+                               L.test("状态异常");
+                           }else{
+                               if(current_play!=i||Math.abs(mediaPlayer.getCurrentPosition()-lastTime)>300){
+                                   curIndex= lastTime;
+                                   L.test("同步视频");
+                                   current_play=i;
+                                   try {
+                                       play(adModelList.get(current_play));
+                                   }catch (Exception e){
+                                       e.printStackTrace();
+                                   }
                                }
                            }
                        }
