@@ -116,7 +116,7 @@ public class MainActivity extends BaseActivity implements MediaPlayer.OnPrepared
         }
 
         cur_Ad = adModel;
-        tv_tips.setText("当前播放：" + "广告" + adModel.getID() + "|" + "模板" + adModel.getPlay_type());
+        tv_tips.setText("当前播放计划："+cur_planID + "广告" + adModel.getID() + "|" + "模板" + adModel.getPlay_type());
         cameraView.setVisibility(adModel.getPlay_type() == 1 ? View.VISIBLE : View.GONE);
         if (mediaPlayer == null) {
             CreateMediaPlayer();
