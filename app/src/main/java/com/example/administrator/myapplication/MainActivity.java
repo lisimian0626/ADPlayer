@@ -11,6 +11,7 @@ import android.os.Handler;
 import android.provider.Settings;
 import android.support.annotation.Nullable;
 import android.text.TextUtils;
+import android.text.format.DateUtils;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.SurfaceHolder;
@@ -49,6 +50,7 @@ import com.example.administrator.myapplication.net.download.DownloadQueueHelper;
 import com.example.administrator.myapplication.service.SleepService;
 import com.example.administrator.myapplication.setting.SettingDialog;
 import com.example.administrator.myapplication.upgrade.dialog.DlgProgress;
+import com.example.administrator.myapplication.utils.DataUtils;
 import com.example.administrator.myapplication.utils.DeviceUtil;
 import com.example.administrator.myapplication.utils.L;
 import com.example.administrator.myapplication.utils.PackageUtil;
@@ -649,9 +651,18 @@ public class MainActivity extends BaseActivity implements MediaPlayer.OnPrepared
         String onTime = PreferenceUtil.getString(MainActivity.this, "onTime", "");
         String offTime = PreferenceUtil.getString(MainActivity.this, "offTime", "");
         if (!TextUtils.isEmpty(onTime) && !TextUtils.isEmpty(offTime)) {
-            SmdtManager smdt = SmdtManager.create(this);
-            smdt.smdtSetTimingSwitchMachine(offTime, onTime, "1");
-            L.test("setTime------" + "offTime:" + offTime + "----" + "onTime:" + onTime);
+            if(DataUtils.inTimeArea(onTime,offTime)){
+                SmdtManager smdt = SmdtManager.create(this);
+                smdt.smdtSetTimingSwitchMachine(offTime, onTime, "1");
+                L.test("setTime------" + "offTime:" + offTime + "----" + "onTime:" + onTime);
+            }else{
+                String addtime=DataUtils.addTime(offTime);
+                if(!TextUtils.isEmpty(addtime)){
+                    SmdtManager smdt = SmdtManager.create(this);
+                    smdt.smdtSetTimingSwitchMachine(addtime, onTime, "1");
+                    L.test("setTime------" + "offTime:" + addtime + "----" + "onTime:" + onTime);
+                }
+            }
         }
         cameraView.setPreviewResolution(1080, 650);
 //
