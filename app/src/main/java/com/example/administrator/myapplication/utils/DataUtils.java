@@ -24,8 +24,8 @@ public class DataUtils {
         }
     }
 
-    public static String addTime(String off){
-        long time=str2Long(off)+5*60*1000;
+    public static String addTime(){
+        long time=str2Long(getTimeforString(System.currentTimeMillis()))+5*60*1000;
         return getTimeforString(time);
     }
 
