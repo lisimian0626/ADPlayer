@@ -9,6 +9,7 @@
     <string name="set_auto_resume_camera">开启后,下区域显示摄像头信号</string>
     <string name="set_auto_resume_hdmi">开启后,打开下区域HDMI信号</string>
     <string name="set_close">关闭</string>
-
+    <string name="set_on">开机时间:</string>
+    <string name="set_off">关机时间:</string>
     <string name="update_tip">版本升级</string>
 </resources>

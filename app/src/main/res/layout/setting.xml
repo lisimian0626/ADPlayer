@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="300dp"
+    android:layout_width="wrap_content"
     android:layout_height="wrap_content"
     android:background="#efeff4"
     android:orientation="vertical">
@@ -113,32 +113,31 @@
         android:textColor="#999"
         android:textSize="12dp" />
 
-    <!--<RelativeLayout-->
-        <!--android:layout_width="match_parent"-->
-        <!--android:layout_height="48dp"-->
-        <!--android:layout_marginTop="15dp"-->
-        <!--android:background="#fff">-->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="48dp"
+        android:layout_marginTop="15dp"
+        android:gravity="center"
+        android:background="#fff">
 
-        <!--<TextView-->
-            <!--android:layout_width="wrap_content"-->
-            <!--android:layout_height="wrap_content"-->
-            <!--android:layout_centerVertical="true"-->
-            <!--android:layout_marginLeft="10dp"-->
-            <!--android:text="@string/set_hdmi"-->
-            <!--android:textColor="#333"-->
-            <!--android:textSize="16dp" />-->
+        <TextView
+            android:id="@+id/setting_tv_on"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:layout_marginLeft="10dp"
+            android:textColor="#333"
+            android:textSize="16dp" />
 
-        <!--<ToggleButton-->
-            <!--android:id="@+id/setting_tg_hdmi"-->
-            <!--android:layout_width="54dp"-->
-            <!--android:layout_height="34dp"-->
-            <!--android:layout_alignParentRight="true"-->
-            <!--android:layout_centerVertical="true"-->
-            <!--android:layout_marginRight="10dp"-->
-            <!--android:background="@drawable/toggle_selector"-->
-            <!--android:textOff=""-->
-            <!--android:textOn="" />-->
-    <!--</RelativeLayout>-->
+        <TextView
+            android:id="@+id/setting_tv_off"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:layout_marginLeft="10dp"
+            android:textColor="#333"
+            android:textSize="16dp" />
+    </LinearLayout>
 
     <!--<TextView-->
         <!--android:layout_width="wrap_content"-->
@@ -151,7 +150,6 @@
     <TextView
         android:layout_width="120dp"
         android:layout_height="40dp"
-        android:layout_gravity="center_horizontal"
         android:layout_margin="35dp"
         android:clickable="true"
         android:background="@drawable/selector_btn_close"

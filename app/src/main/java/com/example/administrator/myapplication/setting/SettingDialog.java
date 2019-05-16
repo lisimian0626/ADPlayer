@@ -6,6 +6,7 @@ import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.DialogFragment;
+import android.text.TextUtils;
 import android.util.DisplayMetrics;
 import android.view.Gravity;
 import android.view.LayoutInflater;
@@ -17,6 +18,7 @@ import android.widget.CompoundButton;
 import android.widget.TextView;
 import android.widget.ToggleButton;
 
+import com.example.administrator.myapplication.MainActivity;
 import com.example.administrator.myapplication.R;
 import com.example.administrator.myapplication.evenbus.BusEvent;
 import com.example.administrator.myapplication.evenbus.EventBusHelper;
@@ -28,6 +30,7 @@ public  class SettingDialog extends DialogFragment implements CompoundButton.OnC
     View mRootView;
     private TextView close;
     private ToggleButton boot,resume,camera;
+    private TextView tv_on,tv_off;
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -53,6 +56,8 @@ public  class SettingDialog extends DialogFragment implements CompoundButton.OnC
         boot=mRootView.findViewById(R.id.setting_tg_boot);
         resume=mRootView.findViewById(R.id.setting_tg_resume);
         camera=mRootView.findViewById(R.id.setting_tg_camera);
+        tv_on=mRootView.findViewById(R.id.setting_tv_on);
+        tv_off=mRootView.findViewById(R.id.setting_tv_off);
         close.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -73,6 +78,18 @@ public  class SettingDialog extends DialogFragment implements CompoundButton.OnC
         lp.gravity = Gravity.CENTER; //底部
         window.setAttributes(lp);
         window.setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
+        String onTime = PreferenceUtil.getString(getActivity(), "onTime", "");
+        String offTime = PreferenceUtil.getString(getActivity(), "offTime", "");
+        if(!TextUtils.isEmpty(onTime)){
+            tv_on.setText(getText(R.string.set_on)+onTime);
+        }else{
+            tv_on.setText(onTime);
+        }
+        if(!TextUtils.isEmpty(offTime)){
+            tv_off.setText(getText(R.string.set_off)+offTime);
+        }else{
+            tv_off.setText(offTime);
+        }
         return mRootView;
     }
 
