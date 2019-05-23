@@ -648,24 +648,30 @@ public class MainActivity extends BaseActivity implements MediaPlayer.OnPrepared
 
     @Override
     public void initData() {
-        String onTime = PreferenceUtil.getString(MainActivity.this, "onTime", "");
-        String offTime = PreferenceUtil.getString(MainActivity.this, "offTime", "");
+
+        tv_tips.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                String onTime = PreferenceUtil.getString(MainActivity.this, "onTime", "");
+                String offTime = PreferenceUtil.getString(MainActivity.this, "offTime", "");
 //        String onTime="6:30";
 //        String offTime="6:40";
-        if (!TextUtils.isEmpty(onTime) && !TextUtils.isEmpty(offTime)) {
-            if(DataUtils.inTimeArea(onTime,offTime)){
-                SmdtManager smdt = SmdtManager.create(this);
-                smdt.smdtSetTimingSwitchMachine(offTime, onTime, "1");
-                L.test("setTime------" + "offTime:" + offTime + "----" + "onTime:" + onTime);
-            }else{
-                String addtime=DataUtils.addTime();
-                if(!TextUtils.isEmpty(addtime)){
-                    SmdtManager smdt = SmdtManager.create(this);
-                    smdt.smdtSetTimingSwitchMachine(addtime, onTime, "1");
-                    L.test("setTime------" + "offTime:" + addtime + "----" + "onTime:" + onTime);
+                if (!TextUtils.isEmpty(onTime) && !TextUtils.isEmpty(offTime)) {
+                    if(DataUtils.inTimeArea(onTime,offTime)){
+                        SmdtManager smdt = SmdtManager.create(MainActivity.this);
+                        smdt.smdtSetTimingSwitchMachine(offTime, onTime, "1");
+                        L.test("setTime------" + "offTime:" + offTime + "----" + "onTime:" + onTime);
+                    }else{
+                        String addtime=DataUtils.addTime();
+                        if(!TextUtils.isEmpty(addtime)){
+                            SmdtManager smdt = SmdtManager.create(MainActivity.this);
+                            smdt.smdtSetTimingSwitchMachine(addtime, onTime, "1");
+                            L.test("setTime------" + "offTime:" + addtime + "----" + "onTime:" + onTime);
+                        }
+                    }
                 }
             }
-        }
+        },60*1000);
         cameraView.setPreviewResolution(1080, 650);
 //
 //        int screen_number = smdt.getHdmiinStatus();
