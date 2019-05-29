@@ -91,7 +91,7 @@ public class MainActivity extends BaseActivity implements MediaPlayer.OnPrepared
     //    private RelativeLayout layout_main;
     int current_play = 0;
     private String cur_ADId = "";
-    private TextView tv_version, tv_cupchip, tv_tips, tv_process;
+    private TextView tv_version, tv_cupchip, tv_tips, tv_process,tv_downPlan;
     private boolean isSurfaceCreated = false;        //surface是否已经创建好
     private int curIndex = 0;
     private boolean isPlaying = false;
@@ -231,8 +231,9 @@ public class MainActivity extends BaseActivity implements MediaPlayer.OnPrepared
         switch (event.getId()) {
             case PlayerEvent.TYPE_DOWNLOADCOMPLITE:
                 cur_planID = new_planID;
-                String jsonMeal = PreferenceUtil.getString(MainActivity.this, "planInfo", "");
+                String jsonMeal=event.getData().toString();
                 if (!TextUtils.isEmpty(jsonMeal)) {
+                    PreferenceUtil.setString(MainActivity.this, "planInfo", jsonMeal);
                     Gson gson = new Gson();
                     planInfo = gson.fromJson(jsonMeal, PlanInfo.class);
                     if (planInfo != null && planInfo.getAdModelList().size() > 0) {
@@ -359,6 +360,7 @@ public class MainActivity extends BaseActivity implements MediaPlayer.OnPrepared
     private void startDownload(final List<PlanListInfo> planListInfos) {
         isDownLoading = true;
         tv_process.setVisibility(View.VISIBLE);
+        tv_downPlan.setVisibility(View.VISIBLE);
         mTaskList.clear();
         for (PlanListInfo info : planListInfos) {
             File file = new File(TConst.getApkDir(), info.getFilename());
@@ -368,17 +370,23 @@ public class MainActivity extends BaseActivity implements MediaPlayer.OnPrepared
                 mTaskList.add(task);
             }
         }
+
         if (mTaskList.size() == 0) {
             //下载完成
             isDownLoading = false;
-            tv_process.setVisibility(View.GONE);
-            EventBusHelper.sendDownComplite();
+            tv_process.setText("");
+            tv_downPlan.setText("");
+            EventBusHelper.sendDownComplite(data2PlanInfo(planListInfos).toString());
+        }else{
+            tv_downPlan.setText("待下载文件:"+mTaskList.size()+"/"+mTaskList.size());
         }
         DownloadQueueHelper.getInstance().downloadSequentially(mTaskList);
         DownloadQueueHelper.getInstance().setOnDownloadListener(new DownloadQueueHelper.OnDownloadListener() {
             @Override
-            public void onDownloadComplete(BaseDownloadTask task) {
+            public void onDownloadComplete(BaseDownloadTask task,int count) {
                 L.test("Complete");
+                tv_process.setText("");
+                tv_downPlan.setText("待下载文件:"+count+"/"+mTaskList.size());
             }
 
             @Override
@@ -405,9 +413,11 @@ public class MainActivity extends BaseActivity implements MediaPlayer.OnPrepared
             public void onDownloadTaskOver() {
                 L.test("下载完成");
                 isDownLoading = false;
+                tv_process.setText("");
+                tv_downPlan.setText("");
                 tv_process.setVisibility(View.GONE);
-
-                EventBusHelper.sendDownComplite();
+                tv_downPlan.setVisibility(View.GONE);
+                EventBusHelper.sendDownComplite(data2PlanInfo(planListInfos).toString());
             }
         });
     }
@@ -418,29 +428,22 @@ public class MainActivity extends BaseActivity implements MediaPlayer.OnPrepared
         }
         isDownLoading = true;
         tv_process.setVisibility(View.VISIBLE);
-        mTaskList.clear();
         BaseDownloadTask task = FileDownloader.getImpl().create(downloadUrl)
                 .setPath(TConst.getApkDir() + TConst.getFileNameByUrl(downloadUrl));
-        mTaskList.add(task);
-
-        if (mTaskList.size() == 0) {
-            //下载完成
-            isDownLoading = false;
-            tv_process.setVisibility(View.GONE);
-        }
-        DownloadQueueHelper.getInstance().downloadSequentially(mTaskList);
+        DownloadQueueHelper.getInstance().downloadSequentially(task);
         DownloadQueueHelper.getInstance().setOnDownloadListener(new DownloadQueueHelper.OnDownloadListener() {
             @Override
-            public void onDownloadComplete(BaseDownloadTask task) {
+            public void onDownloadComplete(BaseDownloadTask task,int count) {
                 L.test("Complete");
+                tv_process.setText("");
             }
 
             @Override
             public void onDownloadTaskError(BaseDownloadTask task, Throwable e) {
                 if (task == null || task.getFilename() == null) {
-                    tv_process.setText("文件下载失败!");
+                    tv_process.setText("下载失败!");
                 }else{
-                    tv_process.setText(task.getFilename() + "   文件下载失败!");
+                    tv_process.setText(task.getFilename() + "   下载失败!");
                 }
                 L.test("加载文件失败,请重新下载！");
             }
@@ -448,11 +451,12 @@ public class MainActivity extends BaseActivity implements MediaPlayer.OnPrepared
             @Override
             public void onDownloadProgress(BaseDownloadTask task, int soFarBytes, int totalBytes) {
                 if (task == null || task.getFilename() == null) {
-                    return;
+                    tv_process.setText("下载中...");
+                }else{
+                    tv_process.setText(task.getFilename() + "   下载中...");
                 }
-                tv_process.setText(task.getFilename() + "   文件下载中...");
 //                tv_process.setText(task.getFilename() + "  " + String.format("%.2f", (float) soFarBytes / totalBytes) + "% 文件下载中...");
-                L.test((soFarBytes / totalBytes) * 100 + "   " + "sofar:" + soFarBytes + "    total:" + totalBytes);
+//                L.test((soFarBytes / totalBytes) * 100 + "   " + "sofar:" + soFarBytes + "    total:" + totalBytes);
             }
 
             @Override
@@ -489,7 +493,11 @@ public class MainActivity extends BaseActivity implements MediaPlayer.OnPrepared
                     adModel.setID(String.valueOf(data.getGroupFlag()));
                     adModel.setImage_url(data.getURL());
                     adModel.setPlay_type(data.getPlaylistSubType());
-                    adModel.setDuration(TConst.normal_duration);
+                    if(data.getDuration()>5&&data.getDuration()<20){
+                        adModel.setDuration(data.getDuration()*1000);
+                    }else{
+                        adModel.setDuration(TConst.normal_duration);
+                    }
                 } else if (data.getFileType().equals("AVI")) {
                     adModel.setID(String.valueOf(data.getGroupFlag()));
                     adModel.setVideo_url(data.getURL());
@@ -601,8 +609,10 @@ public class MainActivity extends BaseActivity implements MediaPlayer.OnPrepared
         mainPresenter = new MainPresenter(this);
         tv_tips = findViewById(R.id.tv_tips);
         tv_process = findViewById(R.id.tv_process);
+        tv_downPlan=findViewById(R.id.tv_downPlan);
         tv_version = findViewById(R.id.tv_version);
         tv_cupchip = findViewById(R.id.tv_cupchip);
+
         lin_mode1 = findViewById(R.id.lin_mode);
         iv_pic = findViewById(R.id.iv_pic);
         main_surf1 = findViewById(R.id.main_surf);
@@ -892,7 +902,6 @@ public class MainActivity extends BaseActivity implements MediaPlayer.OnPrepared
                 PlanListInfo planListInfo = gson.fromJson(user, PlanListInfo.class);
                 planListInfos.add(planListInfo);
             }
-            PreferenceUtil.setString(MainActivity.this, "planInfo", data2PlanInfo(planListInfos).toString());
             if (!isDownLoading) {
                 startDownload(planListInfos);
             }

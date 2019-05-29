@@ -10,6 +10,7 @@ import com.example.administrator.myapplication.model.ProcCpuInfo;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.LineNumberReader;
+import java.util.Random;
 
 /**
  * Created by J Wong on 2015/12/8 19:47.
@@ -49,5 +50,12 @@ public class DeviceUtil {
         String str = info.getMacAddress();
         if (str == null) str = "";
         return str;
+    }
+    public static int getNum(int endNum){
+        if(endNum > 0){
+            Random random = new Random();
+            return random.nextInt(endNum);
+        }
+        return 0;
     }
 }

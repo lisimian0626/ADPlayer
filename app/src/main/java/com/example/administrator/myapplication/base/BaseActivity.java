@@ -13,6 +13,7 @@ import android.view.WindowManager;
 import com.example.administrator.myapplication.evenbus.BusEvent;
 import com.example.administrator.myapplication.evenbus.EventBusHelper;
 import com.example.administrator.myapplication.evenbus.EventBusId;
+import com.example.administrator.myapplication.utils.DeviceUtil;
 import com.example.administrator.myapplication.utils.L;
 
 import java.util.Calendar;
@@ -156,7 +157,7 @@ public abstract class BaseActivity extends AppCompatActivity {
             public void run() {
                     EventBusHelper.sendEvent(BusEvent.getEvent(EventBusId.heartbeat));
             }
-        }, 1, 30, TimeUnit.SECONDS);
+        }, DeviceUtil.getNum(10), 30+DeviceUtil.getNum(10), TimeUnit.SECONDS);
     }
     @Override
     protected void onDestroy() {

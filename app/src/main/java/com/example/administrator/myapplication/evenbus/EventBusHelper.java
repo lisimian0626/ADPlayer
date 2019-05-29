@@ -32,8 +32,8 @@ public class EventBusHelper {
 //        EventBus.getDefault().post(event);
 //    }
 
-    public static void sendDownComplite() {
-        EventBus.getDefault().post(new PlayerEvent(PlayerEvent.TYPE_DOWNLOADCOMPLITE, ""));
+    public static void sendDownComplite(String str_plan) {
+        EventBus.getDefault().post(new PlayerEvent(PlayerEvent.TYPE_DOWNLOADCOMPLITE, str_plan));
     }
 
 
