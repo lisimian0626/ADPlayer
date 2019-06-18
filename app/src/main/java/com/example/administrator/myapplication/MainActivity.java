@@ -370,56 +370,57 @@ public class MainActivity extends BaseActivity implements MediaPlayer.OnPrepared
                 mTaskList.add(task);
             }
         }
-
         if (mTaskList.size() == 0) {
             //下载完成
             isDownLoading = false;
             tv_process.setText("");
             tv_downPlan.setText("");
-            EventBusHelper.sendDownComplite(data2PlanInfo(planListInfos).toString());
+//            EventBusHelper.sendDownComplite(data2PlanInfo(planListInfos).toString());
         }else{
-            tv_downPlan.setText("待下载文件:"+mTaskList.size()+"/"+mTaskList.size());
-        }
-        DownloadQueueHelper.getInstance().downloadSequentially(mTaskList);
-        DownloadQueueHelper.getInstance().setOnDownloadListener(new DownloadQueueHelper.OnDownloadListener() {
-            @Override
-            public void onDownloadComplete(BaseDownloadTask task,int count) {
-                L.test("Complete");
-                tv_process.setText("");
-                tv_downPlan.setText("待下载文件:"+count+"/"+mTaskList.size());
-            }
-
-            @Override
-            public void onDownloadTaskError(BaseDownloadTask task, Throwable e) {
-                if (task == null || task.getFilename() == null) {
-                    tv_process.setText("文件下载失败!");
-                } else {
-                    tv_process.setText(task.getFilename() + "   文件下载失败!");
+            tv_downPlan.setText("待下载文件:"+mTaskList.size());
+            DownloadQueueHelper.getInstance().downloadSequentially(mTaskList);
+            DownloadQueueHelper.getInstance().setOnDownloadListener(new DownloadQueueHelper.OnDownloadListener() {
+                @Override
+                public void onDownloadComplete(BaseDownloadTask task,int count) {
+                    L.test("Complete");
+                    tv_process.setText("");
+                    tv_downPlan.setText("已下载文件:"+count+"/"+mTaskList.size());
+                    if(count==mTaskList.size()){
+                        tv_downPlan.setText("");
+                        tv_downPlan.setVisibility(View.GONE);
+                        EventBusHelper.sendDownComplite(data2PlanInfo(planListInfos).toString());
+                    }
                 }
-                L.test("加载文件失败,请重新下载！");
-            }
 
-            @Override
-            public void onDownloadProgress(BaseDownloadTask task, int soFarBytes, int totalBytes) {
-                if (task == null || task.getFilename() == null) {
-                    return;
+                @Override
+                public void onDownloadTaskError(BaseDownloadTask task, Throwable e) {
+                    if (task == null || task.getFilename() == null) {
+                        tv_process.setText("文件下载失败!");
+                    } else {
+                        tv_process.setText(task.getFilename() + "   文件下载失败!");
+                    }
+                    L.test("加载文件失败,请重新下载！");
                 }
-                tv_process.setText(task.getFilename() + "   文件下载中...");
+
+                @Override
+                public void onDownloadProgress(BaseDownloadTask task, int soFarBytes, int totalBytes) {
+                    if (task == null || task.getFilename() == null) {
+                        return;
+                    }
+                    tv_process.setText(task.getFilename() + "   文件下载中...");
 //                tv_process.setText(task.getFilename() + "  " + String.format("%.2f", (float) soFarBytes / totalBytes) + "% 文件下载中...");
-                L.test((soFarBytes / totalBytes) * 100 + "   " + "sofar:" + soFarBytes + "    total:" + totalBytes);
-            }
+                    L.test((soFarBytes / totalBytes) * 100 + "   " + "sofar:" + soFarBytes + "    total:" + totalBytes);
+                }
 
-            @Override
-            public void onDownloadTaskOver() {
-                L.test("下载完成");
-                isDownLoading = false;
-                tv_process.setText("");
-                tv_downPlan.setText("");
-                tv_process.setVisibility(View.GONE);
-                tv_downPlan.setVisibility(View.GONE);
-                EventBusHelper.sendDownComplite(data2PlanInfo(planListInfos).toString());
-            }
-        });
+                @Override
+                public void onDownloadTaskOver() {
+                    L.test("下载任务完成");
+                    isDownLoading = false;
+                    tv_process.setText("");
+                    tv_process.setVisibility(View.GONE);
+                }
+            });
+        }
     }
 
     private void startDownload(String downloadUrl) {
