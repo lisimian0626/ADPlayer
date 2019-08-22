@@ -10,7 +10,6 @@ import com.liulishuo.filedownloader.FileDownloadListener;
 import com.liulishuo.filedownloader.FileDownloadQueueSet;
 import com.liulishuo.filedownloader.FileDownloader;
 
-
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
@@ -30,7 +29,7 @@ public class DownloadQueueHelper {
 
     private List<BaseDownloadTask> mAllDownloadTasks;
     private SparseArray<Throwable> mThrowable = new SparseArray<>();
-    int succedCount=0;
+
     private static final int CTRL_PROGRESS = 1;
     private static final int CTRL_OVER = 2;
     private static final int CTRL_ERROR = 3;
@@ -54,9 +53,6 @@ public class DownloadQueueHelper {
                 case CTRL_ERROR:
                     BaseDownloadTask task = getTask(message);
                     mListener.onDownloadTaskError(task, task != null ? mThrowable.get(task.getId()) : new RuntimeException("文件下载失败"));
-                case CTRL_COMPLETE:
-                    succedCount++;
-                    mListener.onDownloadComplete(getTask(message),succedCount);
                     break;
             }
             return true;
@@ -161,7 +157,6 @@ public class DownloadQueueHelper {
         //重试10次
         mQueueSet.setAutoRetryTimes(3);
         mQueueSet.addTaskFinishListener(new BaseDownloadTask.FinishListener() {
-
             @Override
             public void over(BaseDownloadTask task) {
                 mAllDownloadTasks.remove(task);
@@ -207,7 +202,7 @@ public class DownloadQueueHelper {
         }
         initDownloadListener();
         initQueueSet();
-        succedCount=0;
+
         mAllDownloadTasks.addAll(tasks);
         mQueueSet.downloadSequentially(mAllDownloadTasks);
         mQueueSet.start();
@@ -288,8 +283,8 @@ public class DownloadQueueHelper {
     }
 
     public interface OnDownloadListener {
-        //在下载线程 count待下载任务
-        void onDownloadComplete(BaseDownloadTask task,int count);
+        //在下载线程
+        void onDownloadComplete(BaseDownloadTask task);
 
         void onDownloadTaskError(BaseDownloadTask task, Throwable e);
 

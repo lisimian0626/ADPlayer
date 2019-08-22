@@ -99,7 +99,6 @@ public class MainActivity extends BaseActivity implements MediaPlayer.OnPrepared
     private long mExitTime = 0;
     private static final int MAX_EXIT_INTERVAL = 2000;
     private SettingDialog settingDialog;
-    private List<BaseDownloadTask> mTaskList = new ArrayList<>();
     private byte[] temp;
     private List<ADModel> adModelList;
     private ADModel cur_Ad;
@@ -361,7 +360,7 @@ public class MainActivity extends BaseActivity implements MediaPlayer.OnPrepared
         isDownLoading = true;
         tv_process.setVisibility(View.VISIBLE);
         tv_downPlan.setVisibility(View.VISIBLE);
-        mTaskList.clear();
+        List<BaseDownloadTask> mTaskList = new ArrayList<>();
         for (PlanListInfo info : planListInfos) {
             File file = new File(TConst.getApkDir(), info.getFilename());
             if (!file.exists()) {
@@ -377,19 +376,15 @@ public class MainActivity extends BaseActivity implements MediaPlayer.OnPrepared
             tv_downPlan.setText("");
 //            EventBusHelper.sendDownComplite(data2PlanInfo(planListInfos).toString());
         }else{
-            tv_downPlan.setText("待下载文件:"+mTaskList.size());
+            count=mTaskList.size();
+            tv_downPlan.setText("待下载文件:"+count);
             DownloadQueueHelper.getInstance().downloadSequentially(mTaskList);
             DownloadQueueHelper.getInstance().setOnDownloadListener(new DownloadQueueHelper.OnDownloadListener() {
                 @Override
-                public void onDownloadComplete(BaseDownloadTask task,int count) {
+                public void onDownloadComplete(BaseDownloadTask task) {
                     L.test("Complete");
                     tv_process.setText("");
-                    tv_downPlan.setText("已下载文件:"+count+"/"+mTaskList.size());
-                    if(count==mTaskList.size()){
-                        tv_downPlan.setText("");
-                        tv_downPlan.setVisibility(View.GONE);
-                        EventBusHelper.sendDownComplite(data2PlanInfo(planListInfos).toString());
-                    }
+                    tv_downPlan.setText("待下载文件:"+count--);
                 }
 
                 @Override
@@ -418,6 +413,7 @@ public class MainActivity extends BaseActivity implements MediaPlayer.OnPrepared
                     isDownLoading = false;
                     tv_process.setText("");
                     tv_process.setVisibility(View.GONE);
+                    EventBusHelper.sendDownComplite(data2PlanInfo(planListInfos).toString());
                 }
             });
         }
@@ -434,7 +430,7 @@ public class MainActivity extends BaseActivity implements MediaPlayer.OnPrepared
         DownloadQueueHelper.getInstance().downloadSequentially(task);
         DownloadQueueHelper.getInstance().setOnDownloadListener(new DownloadQueueHelper.OnDownloadListener() {
             @Override
-            public void onDownloadComplete(BaseDownloadTask task,int count) {
+            public void onDownloadComplete(BaseDownloadTask task) {
                 L.test("Complete");
                 tv_process.setText("");
             }
