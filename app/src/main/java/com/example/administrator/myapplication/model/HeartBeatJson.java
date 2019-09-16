@@ -9,6 +9,8 @@ public class HeartBeatJson implements Serializable{
     private String AdID;
     private String mac;
     private String versionCode;
+    private String playFiles;
+    private int captureScreen;
     public String getPlanID() {
         return planID;
     }
@@ -39,6 +41,22 @@ public class HeartBeatJson implements Serializable{
 
     public void setVersionCode(String versionCode) {
         this.versionCode = versionCode;
+    }
+
+    public String getPlayFiles() {
+        return playFiles;
+    }
+
+    public void setPlayFiles(String playFiles) {
+        this.playFiles = playFiles;
+    }
+
+    public int getCaptureScreen() {
+        return captureScreen;
+    }
+
+    public void setCaptureScreen(int captureScreen) {
+        this.captureScreen = captureScreen;
     }
 
     @Override

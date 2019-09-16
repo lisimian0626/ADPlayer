@@ -15,6 +15,7 @@ import com.example.administrator.myapplication.evenbus.EventBusHelper;
 import com.example.administrator.myapplication.evenbus.EventBusId;
 import com.example.administrator.myapplication.utils.DeviceUtil;
 import com.example.administrator.myapplication.utils.L;
+import com.example.administrator.myapplication.utils.RxAsyncTask;
 
 import java.util.Calendar;
 import java.util.concurrent.ScheduledExecutorService;
@@ -137,18 +138,9 @@ public abstract class BaseActivity extends AppCompatActivity {
                 }else if(count>=100*1000){
                      count=0;
                 }
-//                long time = System.currentTimeMillis();
-//                Calendar mCalendar = Calendar.getInstance();
-//                mCalendar.setTimeInMillis(time);
-//                int mMinute = mCalendar.get(Calendar.MINUTE);
-//                int mSecond = mCalendar.get(Calendar.SECOND);
-//                 if (mSecond == 0) {
-//                    EventBusHelper.sendEvent(BusEvent.getEvent(EventBusId.heartbeat));
-//                } else if (mSecond == 30) {
-//                    EventBusHelper.sendEvent(BusEvent.getEvent(EventBusId.heartbeat));
-//                }
+
             }
-        }, 100, 100, TimeUnit.MILLISECONDS);
+        }, 1000, 100, TimeUnit.MILLISECONDS);
     }
 
     private void scheduleHeartBeat(ScheduledExecutorService service) {
@@ -176,5 +168,9 @@ public abstract class BaseActivity extends AppCompatActivity {
     protected void onPause() {
         super.onPause();
         cancelLoadingRequest();
+    }
+    protected String getFiles(){
+
+        return "";
     }
 }

@@ -1,29 +1,22 @@
 package com.example.administrator.myapplication;
 
 import android.app.smdt.SmdtManager;
-import android.content.Intent;
 import android.graphics.Color;
 import android.graphics.PixelFormat;
 import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
-import android.provider.Settings;
 import android.support.annotation.Nullable;
 import android.text.TextUtils;
-import android.text.format.DateUtils;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.view.View;
-import android.view.Window;
-import android.view.WindowManager;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
-import android.widget.Toast;
-import android.widget.VideoView;
 
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.engine.DiskCacheStrategy;
@@ -47,7 +40,6 @@ import com.example.administrator.myapplication.model.PlanlistJson;
 import com.example.administrator.myapplication.model.VersionJson;
 import com.example.administrator.myapplication.model.VersionResult;
 import com.example.administrator.myapplication.net.download.DownloadQueueHelper;
-import com.example.administrator.myapplication.service.SleepService;
 import com.example.administrator.myapplication.setting.SettingDialog;
 import com.example.administrator.myapplication.upgrade.dialog.DlgProgress;
 import com.example.administrator.myapplication.utils.DataUtils;
@@ -59,7 +51,6 @@ import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonParser;
-import com.google.gson.reflect.TypeToken;
 import com.liulishuo.filedownloader.BaseDownloadTask;
 import com.liulishuo.filedownloader.FileDownloader;
 
@@ -68,10 +59,7 @@ import org.greenrobot.eventbus.ThreadMode;
 
 import java.io.File;
 import java.io.IOException;
-import java.net.URL;
-import java.net.URLEncoder;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -91,7 +79,7 @@ public class MainActivity extends BaseActivity implements MediaPlayer.OnPrepared
     //    private RelativeLayout layout_main;
     int current_play = 0;
     private String cur_ADId = "";
-    private TextView tv_version, tv_cupchip, tv_tips, tv_process,tv_downPlan;
+    private TextView tv_version, tv_cupchip, tv_tips, tv_process, tv_downPlan;
     private boolean isSurfaceCreated = false;        //surface是否已经创建好
     private int curIndex = 0;
     private boolean isPlaying = false;
@@ -108,8 +96,10 @@ public class MainActivity extends BaseActivity implements MediaPlayer.OnPrepared
     private DlgProgress dlgProgress;
     private SmdtManager smdt;
     private RequestOptions options;
-    private int total=0;
+    private int total = 0;
     private PlanInfo planInfo;
+    private List<String> Filelist = new ArrayList<>();
+
     private void play(ADModel adModel) {
         stopPlayer();
         if (adModel == null) {
@@ -117,7 +107,7 @@ public class MainActivity extends BaseActivity implements MediaPlayer.OnPrepared
         }
 
         cur_Ad = adModel;
-        tv_tips.setText("当前播放计划："+cur_planID + "广告" + adModel.getID() + "|" + "模板" + adModel.getPlay_type());
+        tv_tips.setText("当前播放计划：" + cur_planID + "广告" + adModel.getID() + "|" + "模板" + adModel.getPlay_type());
         cameraView.setVisibility(adModel.getPlay_type() == 1 ? View.VISIBLE : View.GONE);
         if (mediaPlayer == null) {
             CreateMediaPlayer();
@@ -209,7 +199,7 @@ public class MainActivity extends BaseActivity implements MediaPlayer.OnPrepared
 
     private void stopPlayer() {
         isPlaying = false;
-        if (mediaPlayer != null&&mediaPlayer.isPlaying()) {
+        if (mediaPlayer != null && mediaPlayer.isPlaying()) {
             mediaPlayer.stop();
             mediaPlayer.release();
             mediaPlayer = null;
@@ -230,7 +220,7 @@ public class MainActivity extends BaseActivity implements MediaPlayer.OnPrepared
         switch (event.getId()) {
             case PlayerEvent.TYPE_DOWNLOADCOMPLITE:
                 cur_planID = new_planID;
-                String jsonMeal=event.getData().toString();
+                String jsonMeal = event.getData().toString();
                 if (!TextUtils.isEmpty(jsonMeal)) {
                     PreferenceUtil.setString(MainActivity.this, "planInfo", jsonMeal);
                     Gson gson = new Gson();
@@ -269,7 +259,7 @@ public class MainActivity extends BaseActivity implements MediaPlayer.OnPrepared
                 }
                 try {
                     play(adModelList.get(current_play));
-                }catch (Exception e){
+                } catch (Exception e) {
                     e.printStackTrace();
                 }
                 break;
@@ -277,7 +267,9 @@ public class MainActivity extends BaseActivity implements MediaPlayer.OnPrepared
                 HeartBeatJson heartBeatJson = new HeartBeatJson();
                 if (cur_Ad != null) {
                     heartBeatJson.setAdID(cur_Ad.getID());
-                    heartBeatJson.setPlanID(String.valueOf(cur_Ad.getPlay_type()));
+                }
+                if (!TextUtils.isEmpty(cur_planID)) {
+                    heartBeatJson.setPlanID(cur_planID);
                 }
                 heartBeatJson.setMac(DeviceUtil.getCupChipID());
                 heartBeatJson.setVersionCode(String.valueOf(PackageUtil.getVersionCode(MainActivity.this)));
@@ -367,6 +359,8 @@ public class MainActivity extends BaseActivity implements MediaPlayer.OnPrepared
                 BaseDownloadTask task = FileDownloader.getImpl().create(info.getURL())
                         .setPath(TConst.getApkDir() + info.getFilename());
                 mTaskList.add(task);
+            } else {
+                Filelist.add(info.getURL());
             }
         }
         if (mTaskList.size() == 0) {
@@ -375,16 +369,16 @@ public class MainActivity extends BaseActivity implements MediaPlayer.OnPrepared
             tv_process.setText("");
             tv_downPlan.setText("");
 //            EventBusHelper.sendDownComplite(data2PlanInfo(planListInfos).toString());
-        }else{
-            count=mTaskList.size();
-            tv_downPlan.setText("待下载文件:"+count);
+        } else {
+            count = mTaskList.size();
+            tv_downPlan.setText("待下载文件:" + count);
             DownloadQueueHelper.getInstance().downloadSequentially(mTaskList);
             DownloadQueueHelper.getInstance().setOnDownloadListener(new DownloadQueueHelper.OnDownloadListener() {
                 @Override
                 public void onDownloadComplete(BaseDownloadTask task) {
                     L.test("Complete");
                     tv_process.setText("");
-                    tv_downPlan.setText("待下载文件:"+count--);
+                    tv_downPlan.setText("待下载文件:" + count--);
                 }
 
                 @Override
@@ -439,7 +433,7 @@ public class MainActivity extends BaseActivity implements MediaPlayer.OnPrepared
             public void onDownloadTaskError(BaseDownloadTask task, Throwable e) {
                 if (task == null || task.getFilename() == null) {
                     tv_process.setText("下载失败!");
-                }else{
+                } else {
                     tv_process.setText(task.getFilename() + "   下载失败!");
                 }
                 L.test("加载文件失败,请重新下载！");
@@ -449,7 +443,7 @@ public class MainActivity extends BaseActivity implements MediaPlayer.OnPrepared
             public void onDownloadProgress(BaseDownloadTask task, int soFarBytes, int totalBytes) {
                 if (task == null || task.getFilename() == null) {
                     tv_process.setText("下载中...");
-                }else{
+                } else {
                     tv_process.setText(task.getFilename() + "   下载中...");
                 }
 //                tv_process.setText(task.getFilename() + "  " + String.format("%.2f", (float) soFarBytes / totalBytes) + "% 文件下载中...");
@@ -486,13 +480,13 @@ public class MainActivity extends BaseActivity implements MediaPlayer.OnPrepared
             List<PlanListInfo> plan = maplist.get(i);
             ADModel adModel = new ADModel();
             for (PlanListInfo data : plan) {
-                if (data.getFileType().equals("PNG")||data.getFileType().equals("JPG")) {
+                if (data.getFileType().equals("PNG") || data.getFileType().equals("JPG")) {
                     adModel.setID(String.valueOf(data.getGroupFlag()));
                     adModel.setImage_url(data.getURL());
                     adModel.setPlay_type(data.getPlaylistSubType());
-                    if(data.getDuration()>5&&data.getDuration()<20){
-                        adModel.setDuration(data.getDuration()*1000);
-                    }else{
+                    if (data.getDuration() > 5 && data.getDuration() < 20) {
+                        adModel.setDuration(data.getDuration() * 1000);
+                    } else {
                         adModel.setDuration(TConst.normal_duration);
                     }
                 } else if (data.getFileType().equals("AVI")) {
@@ -516,7 +510,7 @@ public class MainActivity extends BaseActivity implements MediaPlayer.OnPrepared
                 return i;
             }
         });
-        planInfo.setTotal(20000*adModelList.size());
+        planInfo.setTotal(20000 * adModelList.size());
         planInfo.setSecond(20000);
         planInfo.setPlanID(new_planID);
         planInfo.setAdModelList(adModelList);
@@ -530,7 +524,7 @@ public class MainActivity extends BaseActivity implements MediaPlayer.OnPrepared
                 if (isSurfaceCreated && adModelList != null && adModelList.size() > 0)
                     try {
                         play(adModelList.get(current_play));
-                    }catch (Exception e){
+                    } catch (Exception e) {
                         e.printStackTrace();
                     }
             }
@@ -565,15 +559,15 @@ public class MainActivity extends BaseActivity implements MediaPlayer.OnPrepared
                 return true;
             }
         });
-        int cur_duration=adModelList.get(current_play).getDuration();
-        if(curIndex>0){
+        int cur_duration = adModelList.get(current_play).getDuration();
+        if (curIndex > 0) {
             mediaPlayer.seekTo(curIndex);
-            count=curIndex;
-            L.test("onPrepared:"+"curIndex:"+curIndex+"   count:"+count);
-            curIndex=0;
+            count = curIndex;
+            L.test("onPrepared:" + "curIndex:" + curIndex + "   count:" + count);
+            curIndex = 0;
         }
         mediaPlayer.start();
-        if(cur_duration>0&&cur_duration!=mp.getDuration()&&planInfo!=null){
+        if (cur_duration > 0 && cur_duration != mp.getDuration() && planInfo != null) {
             adModelList.get(current_play).setDuration(mp.getDuration());
             planInfo.setAdModelList(adModelList);
             PreferenceUtil.setString(MainActivity.this, "planInfo", planInfo.toString());
@@ -606,7 +600,7 @@ public class MainActivity extends BaseActivity implements MediaPlayer.OnPrepared
         mainPresenter = new MainPresenter(this);
         tv_tips = findViewById(R.id.tv_tips);
         tv_process = findViewById(R.id.tv_process);
-        tv_downPlan=findViewById(R.id.tv_downPlan);
+        tv_downPlan = findViewById(R.id.tv_downPlan);
         tv_version = findViewById(R.id.tv_version);
         tv_cupchip = findViewById(R.id.tv_cupchip);
 
@@ -623,7 +617,6 @@ public class MainActivity extends BaseActivity implements MediaPlayer.OnPrepared
         startScreenTimer();
         String planjson = PreferenceUtil.getString(MainActivity.this, "planInfo", "");
         if (!TextUtils.isEmpty(planjson)) {
-
             Gson gson = new Gson();
             planInfo = gson.fromJson(planjson, PlanInfo.class);
             L.test(planInfo.toString());
@@ -664,13 +657,13 @@ public class MainActivity extends BaseActivity implements MediaPlayer.OnPrepared
 //        String onTime="6:30";
 //        String offTime="6:40";
                 if (!TextUtils.isEmpty(onTime) && !TextUtils.isEmpty(offTime)) {
-                    if(DataUtils.inTimeArea(onTime,offTime)){
+                    if (DataUtils.inTimeArea(onTime, offTime)) {
                         SmdtManager smdt = SmdtManager.create(MainActivity.this);
                         smdt.smdtSetTimingSwitchMachine(offTime, onTime, "1");
                         L.test("setTime------" + "offTime:" + offTime + "----" + "onTime:" + onTime);
-                    }else{
-                        String addtime=DataUtils.addTime();
-                        if(!TextUtils.isEmpty(addtime)){
+                    } else {
+                        String addtime = DataUtils.addTime();
+                        if (!TextUtils.isEmpty(addtime)) {
                             SmdtManager smdt = SmdtManager.create(MainActivity.this);
                             smdt.smdtSetTimingSwitchMachine(addtime, onTime, "1");
                             L.test("setTime------" + "offTime:" + addtime + "----" + "onTime:" + onTime);
@@ -678,7 +671,7 @@ public class MainActivity extends BaseActivity implements MediaPlayer.OnPrepared
                     }
                 }
             }
-        },60*1000);
+        }, 60 * 1000);
         cameraView.setPreviewResolution(1080, 650);
 //
 //        int screen_number = smdt.getHdmiinStatus();
@@ -793,11 +786,11 @@ public class MainActivity extends BaseActivity implements MediaPlayer.OnPrepared
                 L.test(getPlanJson.toString());
                 mainPresenter.fetchPlan(getPlanJson.toString());
             }
-            int total=0;
-            double frameFlag=heartbeatInfoArrayList.get(0).getFrameFlag();
-            int intframeFlag= (int) (frameFlag*1000);
-            for (ADModel adModel:adModelList){
-                total+=adModel.getDuration();
+            int total = 0;
+            double frameFlag = heartbeatInfoArrayList.get(0).getFrameFlag();
+            int intframeFlag = (int) (frameFlag * 1000);
+            for (ADModel adModel : adModelList) {
+                total += adModel.getDuration();
             }
             if (frameFlag != 0 && total != 0) {
                 int time = intframeFlag % (total);
@@ -806,49 +799,49 @@ public class MainActivity extends BaseActivity implements MediaPlayer.OnPrepared
                 L.test("FrameFlag:" + frameFlag + "---" + "total:" + total + "----" + "time" + time);
                 for (int i = 0; i < adModelList.size(); i++) {
                     curtime += adModelList.get(i).getDuration();
-                   if(curtime>time){
-                       lastTime=time-(curtime-adModelList.get(i).getDuration());
+                    if (curtime > time) {
+                        lastTime = time - (curtime - adModelList.get(i).getDuration());
 
-                       if(TextUtils.isEmpty(adModelList.get(i).getVideo_url())){
-                           //图片同步
-                           L.test("lastTime:"+lastTime+"   "+"server_play:"+String.valueOf(i)+"   "+"current_play:"+current_play+"   "
-                                   +"duration:"+nextTime);
-                           if(lastTime<500||nextTime-lastTime<500){
-                               L.test("状态异常");
-                           }else{
-                               if(current_play!=i||Math.abs(count-lastTime)>500){
-                                   count= lastTime;
-                                   L.test("同步图片");
-                                   current_play=i;
-                                   try {
-                                       play(adModelList.get(current_play));
-                                   }catch (Exception e){
-                                       e.printStackTrace();
-                                   }
-                               }
-                           }
-                       }else{
-                           //视频同步
-                           int curduration=mediaPlayer.getCurrentPosition();
-                           L.test("lastTime:"+lastTime+"   "+"server_play:"+String.valueOf(i)+"   "+"current_play:"+current_play+"   "
-                                   +"duration:"+curduration);
-                           if(lastTime<500||curduration<500||(adModelList.get(i).getDuration()-curduration<500)){
-                               L.test("状态异常");
-                           }else{
-                               if(current_play!=i||Math.abs(mediaPlayer.getCurrentPosition()-lastTime)>500){
-                                   curIndex= lastTime;
-                                   L.test("同步视频");
-                                   current_play=i;
-                                   try {
-                                       play(adModelList.get(current_play));
-                                   }catch (Exception e){
-                                       e.printStackTrace();
-                                   }
-                               }
-                           }
-                       }
-                       break;
-                   }
+                        if (TextUtils.isEmpty(adModelList.get(i).getVideo_url())) {
+                            //图片同步
+                            L.test("lastTime:" + lastTime + "   " + "server_play:" + String.valueOf(i) + "   " + "current_play:" + current_play + "   "
+                                    + "duration:" + nextTime);
+                            if (lastTime < 500 || nextTime - lastTime < 500) {
+                                L.test("状态异常");
+                            } else {
+                                if (current_play != i || Math.abs(count - lastTime) > 500) {
+                                    count = lastTime;
+                                    L.test("同步图片");
+                                    current_play = i;
+                                    try {
+                                        play(adModelList.get(current_play));
+                                    } catch (Exception e) {
+                                        e.printStackTrace();
+                                    }
+                                }
+                            }
+                        } else {
+                            //视频同步
+                            int curduration = mediaPlayer.getCurrentPosition();
+                            L.test("lastTime:" + lastTime + "   " + "server_play:" + String.valueOf(i) + "   " + "current_play:" + current_play + "   "
+                                    + "duration:" + curduration);
+                            if (lastTime < 500 || curduration < 500 || (adModelList.get(i).getDuration() - curduration < 500)) {
+                                L.test("状态异常");
+                            } else {
+                                if (current_play != i || Math.abs(mediaPlayer.getCurrentPosition() - lastTime) > 500) {
+                                    curIndex = lastTime;
+                                    L.test("同步视频");
+                                    current_play = i;
+                                    try {
+                                        play(adModelList.get(current_play));
+                                    } catch (Exception e) {
+                                        e.printStackTrace();
+                                    }
+                                }
+                            }
+                        }
+                        break;
+                    }
                 }
             }
         } catch (IOException e) {
@@ -995,35 +988,13 @@ public class MainActivity extends BaseActivity implements MediaPlayer.OnPrepared
                 .diskCacheStrategy(DiskCacheStrategy.ALL);
         return options;
     }
-//    private boolean SetHdmi(Boolean enable) {
-//        boolean ret1 = smdt.setHdmiInAudioEnable(getApplicationContext(), enable);
-//        if (ret1) {
-//            Toast.makeText(getApplicationContext(), "hdmi audio open success!", Toast.LENGTH_SHORT).show();
-//        } else {
-//            Toast.makeText(getApplicationContext(), "hdmi audio open failed!", Toast.LENGTH_SHORT).show();
-//        }
-//        return ret1;
-//    }
 
-    public void changeAppBrightness(float brightness) {
-        Window window = this.getWindow();
-        WindowManager.LayoutParams lp = window.getAttributes();
-//        if (brightness == -1) {
-//            lp.screenBrightness = WindowManager.LayoutParams.BRIGHTNESS_OVERRIDE_NONE;
-//        } else {
-//            lp.screenBrightness = (brightness <= 0 ? 1 : brightness) / 255f;
-//        }
-        lp.screenBrightness = brightness;
-        window.setAttributes(lp);
-    }
+    private void getFilelist(List<ADModel> adModelList) {
+        for (ADModel adModel : adModelList) {
+            File media_file = TConst.getFileByUrl(adModel.getVideo_url());
+            if (media_file.exists()) {
 
-    private int getSystemBrightness() {
-        int systemBrightness = 0;
-        try {
-            systemBrightness = Settings.System.getInt(getContentResolver(), Settings.System.SCREEN_BRIGHTNESS);
-        } catch (Settings.SettingNotFoundException e) {
-            e.printStackTrace();
+            }
         }
-        return systemBrightness;
     }
 }

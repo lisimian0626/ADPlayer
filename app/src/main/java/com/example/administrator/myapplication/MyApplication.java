@@ -11,13 +11,18 @@ import android.os.Bundle;
 import android.view.WindowManager;
 
 
+import com.example.administrator.myapplication.common.TConst;
 import com.example.administrator.myapplication.exception.UnCeHandler;
+import com.example.administrator.myapplication.model.ADModel;
 import com.example.administrator.myapplication.utils.L;
 import com.example.administrator.myapplication.utils.PreferenceUtil;
+import com.example.administrator.myapplication.utils.RxAsyncTask;
 import com.liulishuo.filedownloader.FileDownloader;
 import com.tencent.bugly.crashreport.CrashReport;
 
+import java.io.File;
 import java.util.ArrayList;
+import java.util.List;
 
 public class MyApplication extends Application implements Application.ActivityLifecycleCallbacks {
     private String Tag = "MyApplication";
@@ -115,5 +120,26 @@ public class MyApplication extends Application implements Application.ActivityLi
     @Override
     public void onActivityDestroyed(Activity activity) {
 
+    }
+
+    public void checkPlan(List<ADModel> adModelListh) {
+        new RxAsyncTask<List<ADModel>,String,Boolean>() {
+            @Override
+            protected Boolean call(List<ADModel>... lists) {
+                for (ADModel adModel : lists[0]) {
+                    File media_file = TConst.getFileByUrl(adModel.getVideo_url());
+                    if (media_file.exists()) {
+
+                    }
+                }
+                return FileUtil.copyFile_new(files[0], files[1].getAbsolutePath());
+            }
+
+            @Override
+            protected void onCompleted() {
+
+                super.onCompleted();
+            }
+        }.execute(adModelListh, desPath);
     }
 }
