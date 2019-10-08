@@ -10,14 +10,19 @@ import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
 
+import com.example.administrator.myapplication.common.TConst;
 import com.example.administrator.myapplication.evenbus.BusEvent;
 import com.example.administrator.myapplication.evenbus.EventBusHelper;
 import com.example.administrator.myapplication.evenbus.EventBusId;
+import com.example.administrator.myapplication.model.ADModel;
 import com.example.administrator.myapplication.utils.DeviceUtil;
 import com.example.administrator.myapplication.utils.L;
 import com.example.administrator.myapplication.utils.RxAsyncTask;
 
+import java.io.File;
+import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.List;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
@@ -173,4 +178,25 @@ public abstract class BaseActivity extends AppCompatActivity {
 
         return "";
     }
+//
+//    protected void checkPlan(List<ADModel> adModelListh) {
+//        new RxAsyncTask<List<ADModel>, String, List<String>>() {
+//            @Override
+//            protected List<String> call(List<ADModel>... lists) {
+//                for (ADModel adModel : lists[0]) {
+//                    File media_file = TConst.getFileByUrl(adModel.getVideo_url());
+//                    if (media_file.exists()&&!Filelist.contains(adModel.getVideo_url())) {
+//                     Filelist.add(adModel.getVideo_url());
+//                    }
+//                }
+//                return Filelist;
+//            }
+//
+//            @Override
+//            protected void onCompleted() {
+//
+//                super.onCompleted();
+//            }
+//        }.execute(adModelListh);
+//    }
 }

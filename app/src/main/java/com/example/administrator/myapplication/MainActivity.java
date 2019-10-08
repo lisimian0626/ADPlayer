@@ -52,6 +52,7 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonParser;
 import com.liulishuo.filedownloader.BaseDownloadTask;
+import com.liulishuo.filedownloader.FileDownloadSampleListener;
 import com.liulishuo.filedownloader.FileDownloader;
 
 import org.greenrobot.eventbus.Subscribe;
@@ -98,7 +99,7 @@ public class MainActivity extends BaseActivity implements MediaPlayer.OnPrepared
     private RequestOptions options;
     private int total = 0;
     private PlanInfo planInfo;
-    private List<String> Filelist = new ArrayList<>();
+    private String filePaths;
 
     private void play(ADModel adModel) {
         stopPlayer();
@@ -123,7 +124,7 @@ public class MainActivity extends BaseActivity implements MediaPlayer.OnPrepared
                 main_surf1.setVisibility(View.GONE);
                 if (adModel.getVideo_url() != null) {
                     L.test("download:" + adModel.getVideo_url());
-                    startDownload(adModel.getVideo_url());
+                    startDownload(adModel);
                 }
             } else {
                 if (media_file.exists()) {
@@ -139,7 +140,7 @@ public class MainActivity extends BaseActivity implements MediaPlayer.OnPrepared
                 } else {
                     if (adModel.getVideo_url() != null) {
                         L.test("download:" + adModel.getVideo_url());
-                        startDownload(adModel.getVideo_url());
+                        startDownload(adModel);
                     }
                 }
             }
@@ -152,7 +153,7 @@ public class MainActivity extends BaseActivity implements MediaPlayer.OnPrepared
                 iv_pic.setVisibility(View.GONE);
                 if (adModel.getVideo_url() != null) {
                     L.test("download:" + adModel.getImage_url());
-                    startDownload(adModel.getImage_url());
+                    startDownload(adModel);
                 }
             } else {
                 if (image_file.exists()) {
@@ -164,7 +165,7 @@ public class MainActivity extends BaseActivity implements MediaPlayer.OnPrepared
                 } else {
                     if (adModel.getImage_url() == null)
                         return;
-                    startDownload(adModel.getImage_url());
+                    startDownload(adModel);
                 }
             }
         }
@@ -274,8 +275,23 @@ public class MainActivity extends BaseActivity implements MediaPlayer.OnPrepared
                 heartBeatJson.setMac(DeviceUtil.getCupChipID());
                 heartBeatJson.setVersionCode(String.valueOf(PackageUtil.getVersionCode(MainActivity.this)));
 //                heartBeatJson.setMac("e558779714542319");
+                String planjson = PreferenceUtil.getString(MainActivity.this, "planInfo", "");
+                if (!TextUtils.isEmpty(planjson)) {
+                    Gson gson = new Gson();
+                    planInfo = gson.fromJson(planjson, PlanInfo.class);
+                    for (ADModel adModel : planInfo.getAdModelList()) {
+                        File media_file = TConst.getFileByUrl(adModel.getVideo_url());
+                        if (media_file.exists() && !filePaths.contains(adModel.getVideo_url())) {
+                            filePaths+=adModel.getVideo_url()+",";
+                        }
+                    }
+                }
+                if(filePaths.length()>1){
+                    heartBeatJson.setPlayFiles(filePaths.substring(0,filePaths.length()-1));
+                }
                 L.test("heartBeatJson:" + heartBeatJson.toString());
                 mainPresenter.fetchHeartbeat(heartBeatJson.toString());
+
                 break;
             case EventBusId.startCamera:
 //                cameraView.setPreviewRotation(180);
@@ -359,8 +375,6 @@ public class MainActivity extends BaseActivity implements MediaPlayer.OnPrepared
                 BaseDownloadTask task = FileDownloader.getImpl().create(info.getURL())
                         .setPath(TConst.getApkDir() + info.getFilename());
                 mTaskList.add(task);
-            } else {
-                Filelist.add(info.getURL());
             }
         }
         if (mTaskList.size() == 0) {
@@ -413,48 +427,55 @@ public class MainActivity extends BaseActivity implements MediaPlayer.OnPrepared
         }
     }
 
-    private void startDownload(String downloadUrl) {
-        if (TextUtils.isEmpty(downloadUrl)) {
+    private void startDownload(ADModel adModel) {
+        if (TextUtils.isEmpty(adModel.getVideo_url())) {
             return;
         }
-        isDownLoading = true;
-        tv_process.setVisibility(View.VISIBLE);
-        BaseDownloadTask task = FileDownloader.getImpl().create(downloadUrl)
-                .setPath(TConst.getApkDir() + TConst.getFileNameByUrl(downloadUrl));
-        DownloadQueueHelper.getInstance().downloadSequentially(task);
-        DownloadQueueHelper.getInstance().setOnDownloadListener(new DownloadQueueHelper.OnDownloadListener() {
+
+        FileDownloader.getImpl().create(adModel.getVideo_url())
+                .setPath(TConst.getApkDir() + TConst.getFileNameByUrl(adModel.getVideo_url()))
+                .setCallbackProgressTimes(300)
+                .setMinIntervalUpdateSpeed(400).setListener(new FileDownloadSampleListener() {
             @Override
-            public void onDownloadComplete(BaseDownloadTask task) {
-                L.test("Complete");
+            protected void pending(BaseDownloadTask task, int soFarBytes, int totalBytes) {
+                super.pending(task, soFarBytes, totalBytes);
+            }
+
+            @Override
+            protected void progress(BaseDownloadTask task, int soFarBytes, int totalBytes) {
+                super.progress(task, soFarBytes, totalBytes);
+                if (task != null && !TextUtils.isEmpty(task.getFilename())) {
+                    tv_process.setText(task.getFilename() + "   文件下载中...");
+                } else {
+                    tv_process.setText("文件下载中...");
+                }
+            }
+
+            @Override
+            protected void blockComplete(BaseDownloadTask task) {
+                super.blockComplete(task);
+            }
+
+            @Override
+            protected void completed(BaseDownloadTask task) {
+                super.completed(task);
                 tv_process.setText("");
             }
 
             @Override
-            public void onDownloadTaskError(BaseDownloadTask task, Throwable e) {
-                if (task == null || task.getFilename() == null) {
-                    tv_process.setText("下载失败!");
-                } else {
-                    tv_process.setText(task.getFilename() + "   下载失败!");
-                }
-                L.test("加载文件失败,请重新下载！");
+            protected void paused(BaseDownloadTask task, int soFarBytes, int totalBytes) {
+                super.paused(task, soFarBytes, totalBytes);
             }
 
             @Override
-            public void onDownloadProgress(BaseDownloadTask task, int soFarBytes, int totalBytes) {
-                if (task == null || task.getFilename() == null) {
-                    tv_process.setText("下载中...");
-                } else {
-                    tv_process.setText(task.getFilename() + "   下载中...");
-                }
-//                tv_process.setText(task.getFilename() + "  " + String.format("%.2f", (float) soFarBytes / totalBytes) + "% 文件下载中...");
-//                L.test((soFarBytes / totalBytes) * 100 + "   " + "sofar:" + soFarBytes + "    total:" + totalBytes);
+            protected void error(BaseDownloadTask task, Throwable e) {
+                super.error(task, e);
+                tv_process.setText("");
             }
 
             @Override
-            public void onDownloadTaskOver() {
-                L.test("下载完成");
-                isDownLoading = false;
-                tv_process.setVisibility(View.GONE);
+            protected void warn(BaseDownloadTask task) {
+                super.warn(task);
             }
         });
     }

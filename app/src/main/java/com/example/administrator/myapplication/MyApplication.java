@@ -1,15 +1,9 @@
 package com.example.administrator.myapplication;
 
-import android.annotation.SuppressLint;
 import android.app.Activity;
-import android.app.AlarmManager;
 import android.app.Application;
-import android.app.PendingIntent;
-import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
-import android.view.WindowManager;
-
 
 import com.example.administrator.myapplication.common.TConst;
 import com.example.administrator.myapplication.exception.UnCeHandler;
@@ -18,6 +12,7 @@ import com.example.administrator.myapplication.utils.L;
 import com.example.administrator.myapplication.utils.PreferenceUtil;
 import com.example.administrator.myapplication.utils.RxAsyncTask;
 import com.liulishuo.filedownloader.FileDownloader;
+import com.liulishuo.filedownloader.connection.FileDownloadUrlConnection;
 import com.tencent.bugly.crashreport.CrashReport;
 
 import java.io.File;
@@ -38,7 +33,13 @@ public class MyApplication extends Application implements Application.ActivityLi
 
     public void init() {
         //设置该CrashHandler为程序的默认处理器
-        FileDownloader.setup(this);
+        FileDownloader.setupOnApplicationOnCreate(this)
+                .connectionCreator(new FileDownloadUrlConnection
+                        .Creator(new FileDownloadUrlConnection.Configuration()
+                        .connectTimeout(15_000) // set connection timeout.
+                        .readTimeout(15_000) // set read timeout.
+                ))
+                .commit();
         UnCeHandler catchExcep = new UnCeHandler(this);
         Thread.setDefaultUncaughtExceptionHandler(catchExcep);
         CrashReport.initCrashReport(getApplicationContext(), "a42cc2465b", false);
@@ -97,7 +98,7 @@ public class MyApplication extends Application implements Application.ActivityLi
     public void onActivityStopped(Activity activity) {
         L.d(Tag, "onActivityStopped");
         activityCount--;
-        if (0 == activityCount&& PreferenceUtil.getBoolean(this, "resume", true)) {
+        if (0 == activityCount && PreferenceUtil.getBoolean(this, "resume", true)) {
             isForeground = false;
             try {
                 Thread.sleep(5000);
@@ -122,24 +123,4 @@ public class MyApplication extends Application implements Application.ActivityLi
 
     }
 
-    public void checkPlan(List<ADModel> adModelListh) {
-        new RxAsyncTask<List<ADModel>,String,Boolean>() {
-            @Override
-            protected Boolean call(List<ADModel>... lists) {
-                for (ADModel adModel : lists[0]) {
-                    File media_file = TConst.getFileByUrl(adModel.getVideo_url());
-                    if (media_file.exists()) {
-
-                    }
-                }
-                return FileUtil.copyFile_new(files[0], files[1].getAbsolutePath());
-            }
-
-            @Override
-            protected void onCompleted() {
-
-                super.onCompleted();
-            }
-        }.execute(adModelListh, desPath);
-    }
 }

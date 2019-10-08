@@ -4,12 +4,15 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
 import android.util.SparseArray;
+import android.widget.Toast;
 
 import com.liulishuo.filedownloader.BaseDownloadTask;
 import com.liulishuo.filedownloader.FileDownloadListener;
 import com.liulishuo.filedownloader.FileDownloadQueueSet;
 import com.liulishuo.filedownloader.FileDownloader;
+import com.liulishuo.filedownloader.util.FileDownloadUtils;
 
+import java.io.File;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
@@ -214,7 +217,6 @@ public class DownloadQueueHelper {
         }
         initDownloadListener();
         initQueueSet();
-
         mAllDownloadTasks.add(0, task);
         mQueueSet.downloadSequentially(mAllDownloadTasks);
         mQueueSet.start();
@@ -294,4 +296,39 @@ public class DownloadQueueHelper {
         void onDownloadTaskOver();
     }
 
+
+    public void stop_multi(){
+        FileDownloader.getImpl().pause(mDownloadListener);
+    }
+
+    public void deleteAllFile(){
+
+        //清除所有的下载任务
+        FileDownloader.getImpl().clearAllTaskData();
+
+        //清除所有下载的文件
+        int count = 0;
+        File file = new File(FileDownloadUtils.getDefaultSaveRootPath());
+        do {
+            if (!file.exists()) {
+                break;
+            }
+
+            if (!file.isDirectory()) {
+                break;
+            }
+
+            File[] files = file.listFiles();
+
+            if (files == null) {
+                break;
+            }
+
+            for (File file1 : files) {
+                count++;
+                file1.delete();
+            }
+
+        } while (false);
+    }
 }
