@@ -1,11 +1,13 @@
 package com.example.administrator.myapplication.base;
 
 import android.app.Activity;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.PersistableBundle;
 import android.support.annotation.LayoutRes;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
+import android.text.TextUtils;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
@@ -199,4 +201,38 @@ public abstract class BaseActivity extends AppCompatActivity {
 //            }
 //        }.execute(adModelListh);
 //    }
+
+
+    class freeDiskSpaceTask extends AsyncTask<List<ADModel> ,String ,String > {
+        @Override
+        protected void onPostExecute(String s) {
+
+            super.onPostExecute(s);
+        }
+
+        @Override
+        protected String doInBackground(List<ADModel>... AdModels) {
+            freeDiskSpace(AdModels[0]);
+            return null;
+        }
+    }
+    public void freeDiskSpace(List<ADModel> adModelList) {
+
+        if (adModelList != null && adModelList.size() > 0) {
+            for (ADModel adModel : adModelList) {
+                L.d(Tag,"要删除歌曲的初始path:"+str);
+                String diskPath = DiskFileUtil.getFileSavedPath(str);
+                if (TextUtils.isEmpty(diskPath)) {
+                    continue;
+                }
+
+                File file = new File(diskPath);
+                if (file.exists() && file.isFile()) {
+                    file.delete();
+                    L.d(Tag,"执行删除路径:"+str);
+                }
+            }
+
+        }
+    }
 }
