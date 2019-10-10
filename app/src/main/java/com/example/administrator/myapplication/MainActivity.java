@@ -100,7 +100,7 @@ public class MainActivity extends BaseActivity implements MediaPlayer.OnPrepared
     private int total = 0;
     private PlanInfo planInfo;
     private String filePaths;
-
+    private Map<String,Integer> mediaMap=new HashMap<>();
     private void play(ADModel adModel) {
         stopPlayer();
         if (adModel == null) {
@@ -134,8 +134,27 @@ public class MainActivity extends BaseActivity implements MediaPlayer.OnPrepared
                         mediaPlayer.setDataSource(media_file.getAbsolutePath());
                         mediaPlayer.setDisplay(main_surf1.getHolder());
                         mediaPlayer.prepareAsync();
+                        for(String key : mediaMap.keySet()){
+                            if(key.equalsIgnoreCase(media_file.getAbsolutePath())){
+                                mediaMap.put(key,0);
+                            }
+                        }
                     } catch (IOException e) {
                         e.printStackTrace();
+                        for(Map.Entry<String, Integer> entry : mediaMap.entrySet()){
+                            if(entry.getKey().equalsIgnoreCase(media_file.getAbsolutePath())){
+                                if(entry.getValue()>=2){
+                                    media_file.delete();
+                                    L.e(TAG,"播放错误 删除文件:"+media_file.getAbsolutePath());
+                                }else{
+                                    mediaMap.put(entry.getKey(),entry.getValue()+1);
+                                    L.e(TAG,"播放错误:"+media_file.getAbsolutePath()+" 次数:"+entry.getValue());
+                                }
+                            }else{
+                                mediaMap.put(entry.getKey(),0);
+                                L.e(TAG,"播放错误:"+media_file.getAbsolutePath());
+                            }
+                        }
                     }
                 } else {
                     if (adModel.getVideo_url() != null) {
