@@ -5,6 +5,7 @@ import android.graphics.Color;
 import android.graphics.PixelFormat;
 import android.media.MediaPlayer;
 import android.net.Uri;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.annotation.Nullable;
@@ -104,7 +105,11 @@ public class MainActivity extends BaseActivity implements MediaPlayer.OnPrepared
     private Map<String,Integer> mediaMap=new HashMap<>();
     private void play(ADModel adModel) {
         stopPlayer();
-        StorageUtil.getInternalStorageAvailableSpace();
+//        if(StorageUtil.getInternalStorageAvailableSpace()<1600){
+//            if(planInfo.getAdModelList()!=null&&planInfo.getAdModelList().size()>0){
+//                new freeDiskSpaceTask().execute(planInfo.getAdModelList());
+//            }
+//        }
         if (adModel == null) {
             return;
         }
@@ -126,7 +131,7 @@ public class MainActivity extends BaseActivity implements MediaPlayer.OnPrepared
                 main_surf1.setVisibility(View.GONE);
                 if (adModel.getVideo_url() != null) {
                     L.test("download:" + adModel.getVideo_url());
-                    startDownload(adModel);
+                    startDownload(adModel.getVideo_url());
                 }
             } else {
                 if (media_file.exists()) {
@@ -161,7 +166,7 @@ public class MainActivity extends BaseActivity implements MediaPlayer.OnPrepared
                 } else {
                     if (adModel.getVideo_url() != null) {
                         L.test("download:" + adModel.getVideo_url());
-                        startDownload(adModel);
+                        startDownload(adModel.getVideo_url());
                     }
                 }
             }
@@ -172,9 +177,9 @@ public class MainActivity extends BaseActivity implements MediaPlayer.OnPrepared
             File image_file = TConst.getFileByUrl(adModel.getImage_url());
             if (image_file == null) {
                 iv_pic.setVisibility(View.GONE);
-                if (adModel.getVideo_url() != null) {
+                if (adModel.getImage_url() != null) {
                     L.test("download:" + adModel.getImage_url());
-                    startDownload(adModel);
+                    startDownload(adModel.getImage_url());
                 }
             } else {
                 if (image_file.exists()) {
@@ -186,7 +191,7 @@ public class MainActivity extends BaseActivity implements MediaPlayer.OnPrepared
                 } else {
                     if (adModel.getImage_url() == null)
                         return;
-                    startDownload(adModel);
+                    startDownload(adModel.getImage_url());
                 }
             }
         }
@@ -448,16 +453,16 @@ public class MainActivity extends BaseActivity implements MediaPlayer.OnPrepared
         }
     }
 
-    private void startDownload(ADModel adModel) {
+    private void startDownload(String url) {
         if(StorageUtil.getInternalStorageAvailableSpace()>0){
 
         }
-        if (TextUtils.isEmpty(adModel.getVideo_url())) {
+        if (TextUtils.isEmpty(url)) {
             return;
         }
 
-        FileDownloader.getImpl().create(adModel.getVideo_url())
-                .setPath(TConst.getApkDir() + TConst.getFileNameByUrl(adModel.getVideo_url()))
+        FileDownloader.getImpl().create(url)
+                .setPath(TConst.getApkDir() + TConst.getFileNameByUrl(url))
                 .setCallbackProgressTimes(300)
                 .setMinIntervalUpdateSpeed(400).setListener(new FileDownloadSampleListener() {
             @Override
@@ -1034,12 +1039,17 @@ public class MainActivity extends BaseActivity implements MediaPlayer.OnPrepared
         return options;
     }
 
-    private void getFilelist(List<ADModel> adModelList) {
-        for (ADModel adModel : adModelList) {
-            File media_file = TConst.getFileByUrl(adModel.getVideo_url());
-            if (media_file.exists()) {
+    class freeDiskSpaceTask extends AsyncTask<List<ADModel>, String, String> {
+        @Override
+        protected void onPostExecute(String s) {
 
-            }
+            super.onPostExecute(s);
+        }
+
+        @Override
+        protected String doInBackground(List<ADModel>... AdModels) {
+            freeDiskSpace(AdModels[0]);
+            return null;
         }
     }
 }

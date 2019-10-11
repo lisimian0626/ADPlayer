@@ -199,21 +199,9 @@ public abstract class BaseActivity extends AppCompatActivity {
 //    }
 
 
-    class freeDiskSpaceTask extends AsyncTask<List<ADModel>, String, String> {
-        @Override
-        protected void onPostExecute(String s) {
 
-            super.onPostExecute(s);
-        }
 
-        @Override
-        protected String doInBackground(List<ADModel>... AdModels) {
-            freeDiskSpace(AdModels[0]);
-            return null;
-        }
-    }
-
-    public void freeDiskSpace(List<ADModel> adModelList) {
+     public void freeDiskSpace(List<ADModel> adModelList) {
         File file = new File(TConst.getApkDir());
         File[] files = file.listFiles();
         if (files != null && files.length > 0 && adModelList != null && adModelList.size() > 0) {

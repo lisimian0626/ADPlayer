@@ -28,7 +28,7 @@ public final class StorageUtil {
         StatFs stat = new StatFs(path.getPath());
         long blockSize = stat.getBlockSize();
         long availableBlocks = stat.getAvailableBlocks();
-        ret = availableBlocks * blockSize;
+        ret = availableBlocks * blockSize/1024/1024;   //MB
         L.d("test","ret="+ret);
         return ret;
     }
