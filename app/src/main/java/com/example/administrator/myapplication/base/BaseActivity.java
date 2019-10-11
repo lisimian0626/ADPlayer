@@ -1,15 +1,11 @@
 package com.example.administrator.myapplication.base;
 
-import android.app.Activity;
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.os.PersistableBundle;
 import android.support.annotation.LayoutRes;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
-import android.text.TextUtils;
 import android.view.View;
-import android.view.Window;
 import android.view.WindowManager;
 
 import com.example.administrator.myapplication.common.TConst;
@@ -19,11 +15,8 @@ import com.example.administrator.myapplication.evenbus.EventBusId;
 import com.example.administrator.myapplication.model.ADModel;
 import com.example.administrator.myapplication.utils.DeviceUtil;
 import com.example.administrator.myapplication.utils.L;
-import com.example.administrator.myapplication.utils.RxAsyncTask;
 
 import java.io.File;
-import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.List;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -32,8 +25,9 @@ public abstract class BaseActivity extends AppCompatActivity {
     private String Tag = "BaseActivity";
     private ScheduledExecutorService mScheduledExecutorService;
     private ScheduledExecutorService mScheduledHreatbeatService;
-    public static int nextTime = 20*1000;
-    public static int count=0;
+    public static int nextTime = 20 * 1000;
+    public static int count = 0;
+
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -108,15 +102,15 @@ public abstract class BaseActivity extends AppCompatActivity {
     }
 
     protected void startScreenTimer() {
-        if (mScheduledExecutorService != null && !mScheduledExecutorService.isShutdown()){
+        if (mScheduledExecutorService != null && !mScheduledExecutorService.isShutdown()) {
 
-        }else{
+        } else {
             mScheduledExecutorService = java.util.concurrent.Executors.newScheduledThreadPool(1);
             scheduleAtFixedRate(mScheduledExecutorService);
         }
-        if(mScheduledHreatbeatService != null && !mScheduledHreatbeatService.isShutdown()){
+        if (mScheduledHreatbeatService != null && !mScheduledHreatbeatService.isShutdown()) {
 
-        }else{
+        } else {
             mScheduledHreatbeatService = java.util.concurrent.Executors.newScheduledThreadPool(1);
             scheduleHeartBeat(mScheduledHreatbeatService);
         }
@@ -137,13 +131,13 @@ public abstract class BaseActivity extends AppCompatActivity {
         service.scheduleAtFixedRate(new Runnable() {
             @Override
             public void run() {
-                count=count+100;
+                count = count + 100;
                 L.d("nextTime:" + nextTime + "   count:" + count);
-                if(count>=nextTime){
+                if (count >= nextTime) {
                     EventBusHelper.sendEvent(BusEvent.getEvent(EventBusId.nextTime));
-                    count=0;
-                }else if(count>=100*1000){
-                     count=0;
+                    count = 0;
+                } else if (count >= 100 * 1000) {
+                    count = 0;
                 }
 
             }
@@ -154,10 +148,11 @@ public abstract class BaseActivity extends AppCompatActivity {
         service.scheduleAtFixedRate(new Runnable() {
             @Override
             public void run() {
-                    EventBusHelper.sendEvent(BusEvent.getEvent(EventBusId.heartbeat));
+                EventBusHelper.sendEvent(BusEvent.getEvent(EventBusId.heartbeat));
             }
-        }, DeviceUtil.getNum(10), 30+DeviceUtil.getNum(10), TimeUnit.SECONDS);
+        }, DeviceUtil.getNum(10), 30 + DeviceUtil.getNum(10), TimeUnit.SECONDS);
     }
+
     @Override
     protected void onDestroy() {
         super.onDestroy();
@@ -176,7 +171,8 @@ public abstract class BaseActivity extends AppCompatActivity {
         super.onPause();
         cancelLoadingRequest();
     }
-    protected String getFiles(){
+
+    protected String getFiles() {
 
         return "";
     }
@@ -203,7 +199,7 @@ public abstract class BaseActivity extends AppCompatActivity {
 //    }
 
 
-    class freeDiskSpaceTask extends AsyncTask<List<ADModel> ,String ,String > {
+    class freeDiskSpaceTask extends AsyncTask<List<ADModel>, String, String> {
         @Override
         protected void onPostExecute(String s) {
 
@@ -216,23 +212,21 @@ public abstract class BaseActivity extends AppCompatActivity {
             return null;
         }
     }
+
     public void freeDiskSpace(List<ADModel> adModelList) {
-
-        if (adModelList != null && adModelList.size() > 0) {
-            for (ADModel adModel : adModelList) {
-                L.d(Tag,"要删除歌曲的初始path:"+str);
-                String diskPath = DiskFileUtil.getFileSavedPath(str);
-                if (TextUtils.isEmpty(diskPath)) {
-                    continue;
-                }
-
-                File file = new File(diskPath);
-                if (file.exists() && file.isFile()) {
-                    file.delete();
-                    L.d(Tag,"执行删除路径:"+str);
+        File file = new File(TConst.getApkDir());
+        File[] files = file.listFiles();
+        if (files != null && files.length > 0 && adModelList != null && adModelList.size() > 0) {
+            for (int i = 0; i < files.length; i++) {
+                for (int j = 0; j < adModelList.size(); j++) {
+                    if (files[i].equals(adModelList.get(j))) {
+                        break;
+                    } else {
+                        files[i].delete();
+                        L.d(Tag, "执行删除路径:" + files[i].getAbsolutePath());
+                    }
                 }
             }
-
         }
     }
 }

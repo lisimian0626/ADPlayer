@@ -47,6 +47,7 @@ import com.example.administrator.myapplication.utils.DeviceUtil;
 import com.example.administrator.myapplication.utils.L;
 import com.example.administrator.myapplication.utils.PackageUtil;
 import com.example.administrator.myapplication.utils.PreferenceUtil;
+import com.example.administrator.myapplication.utils.StorageUtil;
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
@@ -103,6 +104,7 @@ public class MainActivity extends BaseActivity implements MediaPlayer.OnPrepared
     private Map<String,Integer> mediaMap=new HashMap<>();
     private void play(ADModel adModel) {
         stopPlayer();
+        StorageUtil.getInternalStorageAvailableSpace();
         if (adModel == null) {
             return;
         }
@@ -447,6 +449,9 @@ public class MainActivity extends BaseActivity implements MediaPlayer.OnPrepared
     }
 
     private void startDownload(ADModel adModel) {
+        if(StorageUtil.getInternalStorageAvailableSpace()>0){
+
+        }
         if (TextUtils.isEmpty(adModel.getVideo_url())) {
             return;
         }
