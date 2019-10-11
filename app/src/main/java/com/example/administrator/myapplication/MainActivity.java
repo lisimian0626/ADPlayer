@@ -101,7 +101,7 @@ public class MainActivity extends BaseActivity implements MediaPlayer.OnPrepared
     private RequestOptions options;
     private int total = 0;
     private PlanInfo planInfo;
-    private String filePaths;
+    private String filePaths="";
     private Map<String,Integer> mediaMap=new HashMap<>();
     private void play(ADModel adModel) {
         stopPlayer();
@@ -307,7 +307,7 @@ public class MainActivity extends BaseActivity implements MediaPlayer.OnPrepared
                     planInfo = gson.fromJson(planjson, PlanInfo.class);
                     for (ADModel adModel : planInfo.getAdModelList()) {
                         File media_file = TConst.getFileByUrl(adModel.getVideo_url());
-                        if (media_file.exists() && !filePaths.contains(adModel.getVideo_url())) {
+                        if (media_file!=null&&media_file.exists() && !filePaths.contains(adModel.getVideo_url())) {
                             filePaths+=adModel.getVideo_url()+",";
                         }
                     }
