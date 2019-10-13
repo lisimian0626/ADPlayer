@@ -82,7 +82,7 @@ public class MainActivity extends BaseActivity implements MediaPlayer.OnPrepared
     //    private RelativeLayout layout_main;
     int current_play = 0;
     private String cur_ADId = "";
-    private TextView tv_version, tv_cupchip, tv_tips, tv_process, tv_downPlan;
+    private TextView tv_version, tv_cupchip, tv_tips, tv_process;
     private boolean isSurfaceCreated = false;        //surface是否已经创建好
     private int curIndex = 0;
     private boolean isPlaying = false;
@@ -101,8 +101,9 @@ public class MainActivity extends BaseActivity implements MediaPlayer.OnPrepared
     private RequestOptions options;
     private int total = 0;
     private PlanInfo planInfo;
-    private String filePaths="";
-    private Map<String,Integer> mediaMap=new HashMap<>();
+    private String filePaths = "";
+    private Map<String, Integer> mediaMap = new HashMap<>();
+
     private void play(ADModel adModel) {
         stopPlayer();
 //        if(StorageUtil.getInternalStorageAvailableSpace()<1600){
@@ -115,7 +116,7 @@ public class MainActivity extends BaseActivity implements MediaPlayer.OnPrepared
         }
 
         cur_Ad = adModel;
-        tv_tips.setText("当前播放计划：" + cur_planID + "广告" + adModel.getID() + "|" + "模板" + adModel.getPlay_type());
+        tv_tips.setText("当前播放计划：" + cur_planID + "    素材分组号" + adModel.getID() + "    模板" + adModel.getPlay_type());
         cameraView.setVisibility(adModel.getPlay_type() == 1 ? View.VISIBLE : View.GONE);
         if (mediaPlayer == null) {
             CreateMediaPlayer();
@@ -141,25 +142,25 @@ public class MainActivity extends BaseActivity implements MediaPlayer.OnPrepared
                         mediaPlayer.setDataSource(media_file.getAbsolutePath());
                         mediaPlayer.setDisplay(main_surf1.getHolder());
                         mediaPlayer.prepareAsync();
-                        for(String key : mediaMap.keySet()){
-                            if(key.equalsIgnoreCase(media_file.getAbsolutePath())){
-                                mediaMap.put(key,0);
+                        for (String key : mediaMap.keySet()) {
+                            if (key.equalsIgnoreCase(media_file.getAbsolutePath())) {
+                                mediaMap.put(key, 0);
                             }
                         }
                     } catch (IOException e) {
                         e.printStackTrace();
-                        for(Map.Entry<String, Integer> entry : mediaMap.entrySet()){
-                            if(entry.getKey().equalsIgnoreCase(media_file.getAbsolutePath())){
-                                if(entry.getValue()>=2){
+                        for (Map.Entry<String, Integer> entry : mediaMap.entrySet()) {
+                            if (entry.getKey().equalsIgnoreCase(media_file.getAbsolutePath())) {
+                                if (entry.getValue() >= 2) {
                                     media_file.delete();
-                                    L.e(TAG,"播放错误 删除文件:"+media_file.getAbsolutePath());
-                                }else{
-                                    mediaMap.put(entry.getKey(),entry.getValue()+1);
-                                    L.e(TAG,"播放错误:"+media_file.getAbsolutePath()+" 次数:"+entry.getValue());
+                                    L.e(TAG, "播放错误 删除文件:" + media_file.getAbsolutePath());
+                                } else {
+                                    mediaMap.put(entry.getKey(), entry.getValue() + 1);
+                                    L.e(TAG, "播放错误:" + media_file.getAbsolutePath() + " 次数:" + entry.getValue());
                                 }
-                            }else{
-                                mediaMap.put(entry.getKey(),0);
-                                L.e(TAG,"播放错误:"+media_file.getAbsolutePath());
+                            } else {
+                                mediaMap.put(entry.getKey(), 0);
+                                L.e(TAG, "播放错误:" + media_file.getAbsolutePath());
                             }
                         }
                     }
@@ -301,20 +302,20 @@ public class MainActivity extends BaseActivity implements MediaPlayer.OnPrepared
                 heartBeatJson.setMac(DeviceUtil.getCupChipID());
                 heartBeatJson.setVersionCode(String.valueOf(PackageUtil.getVersionCode(MainActivity.this)));
 //                heartBeatJson.setMac("e558779714542319");
-                String planjson = PreferenceUtil.getString(MainActivity.this, "planInfo", "");
-                if (!TextUtils.isEmpty(planjson)) {
-                    Gson gson = new Gson();
-                    planInfo = gson.fromJson(planjson, PlanInfo.class);
-                    for (ADModel adModel : planInfo.getAdModelList()) {
-                        File media_file = TConst.getFileByUrl(adModel.getVideo_url());
-                        if (media_file!=null&&media_file.exists() && !filePaths.contains(adModel.getVideo_url())) {
-                            filePaths+=adModel.getVideo_url()+",";
-                        }
-                    }
-                }
-                if(filePaths.length()>1){
-                    heartBeatJson.setPlayFiles(filePaths.substring(0,filePaths.length()-1));
-                }
+//                String planjson = PreferenceUtil.getString(MainActivity.this, "planInfo", "");
+//                if (!TextUtils.isEmpty(planjson)) {
+//                    Gson gson = new Gson();
+//                    planInfo = gson.fromJson(planjson, PlanInfo.class);
+//                    for (ADModel adModel : planInfo.getAdModelList()) {
+//                        File media_file = TConst.getFileByUrl(adModel.getVideo_url());
+//                        if (media_file != null && media_file.exists() && !filePaths.contains(adModel.getVideo_url())) {
+//                            filePaths += adModel.getVideo_url() + ",";
+//                        }
+//                    }
+//                }
+//                if (filePaths.length() > 1) {
+//                    heartBeatJson.setPlayFiles(filePaths.substring(0, filePaths.length() - 1));
+//                }
                 L.test("heartBeatJson:" + heartBeatJson.toString());
                 mainPresenter.fetchHeartbeat(heartBeatJson.toString());
 
@@ -392,8 +393,6 @@ public class MainActivity extends BaseActivity implements MediaPlayer.OnPrepared
 
     private void startDownload(final List<PlanListInfo> planListInfos) {
         isDownLoading = true;
-        tv_process.setVisibility(View.VISIBLE);
-        tv_downPlan.setVisibility(View.VISIBLE);
         List<BaseDownloadTask> mTaskList = new ArrayList<>();
         for (PlanListInfo info : planListInfos) {
             File file = new File(TConst.getApkDir(), info.getFilename());
@@ -407,26 +406,20 @@ public class MainActivity extends BaseActivity implements MediaPlayer.OnPrepared
             //下载完成
             isDownLoading = false;
             tv_process.setText("");
-            tv_downPlan.setText("");
-//            EventBusHelper.sendDownComplite(data2PlanInfo(planListInfos).toString());
+            EventBusHelper.sendDownComplite(data2PlanInfo(planListInfos).toString());
         } else {
-            count = mTaskList.size();
-            tv_downPlan.setText("待下载文件:" + count);
             DownloadQueueHelper.getInstance().downloadSequentially(mTaskList);
             DownloadQueueHelper.getInstance().setOnDownloadListener(new DownloadQueueHelper.OnDownloadListener() {
                 @Override
                 public void onDownloadComplete(BaseDownloadTask task) {
                     L.test("Complete");
                     tv_process.setText("");
-                    tv_downPlan.setText("待下载文件:" + count--);
                 }
 
                 @Override
                 public void onDownloadTaskError(BaseDownloadTask task, Throwable e) {
                     if (task == null || task.getFilename() == null) {
-                        tv_process.setText("文件下载失败!");
-                    } else {
-                        tv_process.setText(task.getFilename() + "   文件下载失败!");
+                        tv_process.setText("素材下载失败!");
                     }
                     L.test("加载文件失败,请重新下载！");
                 }
@@ -436,7 +429,7 @@ public class MainActivity extends BaseActivity implements MediaPlayer.OnPrepared
                     if (task == null || task.getFilename() == null) {
                         return;
                     }
-                    tv_process.setText(task.getFilename() + "   文件下载中...");
+                    tv_process.setText("素材下载中...");
 //                tv_process.setText(task.getFilename() + "  " + String.format("%.2f", (float) soFarBytes / totalBytes) + "% 文件下载中...");
                     L.test((soFarBytes / totalBytes) * 100 + "   " + "sofar:" + soFarBytes + "    total:" + totalBytes);
                 }
@@ -446,65 +439,72 @@ public class MainActivity extends BaseActivity implements MediaPlayer.OnPrepared
                     L.test("下载任务完成");
                     isDownLoading = false;
                     tv_process.setText("");
-                    tv_process.setVisibility(View.GONE);
                     EventBusHelper.sendDownComplite(data2PlanInfo(planListInfos).toString());
                 }
             });
         }
     }
 
-    private void startDownload(String url) {
-        if(StorageUtil.getInternalStorageAvailableSpace()>0){
+    private void startDownload(final String url) {
+        if (StorageUtil.getInternalStorageAvailableSpace() > 0) {
 
         }
         if (TextUtils.isEmpty(url)) {
             return;
         }
+        downFileSingle(url).start();
+    }
 
-        FileDownloader.getImpl().create(url)
+    private BaseDownloadTask downFileSingle(final String url) {
+        return FileDownloader.getImpl().create(url)
                 .setPath(TConst.getApkDir() + TConst.getFileNameByUrl(url))
                 .setCallbackProgressTimes(300)
                 .setMinIntervalUpdateSpeed(400).setListener(new FileDownloadSampleListener() {
             @Override
             protected void pending(BaseDownloadTask task, int soFarBytes, int totalBytes) {
                 super.pending(task, soFarBytes, totalBytes);
+                L.test("pending....");
             }
 
             @Override
             protected void progress(BaseDownloadTask task, int soFarBytes, int totalBytes) {
                 super.progress(task, soFarBytes, totalBytes);
-                if (task != null && !TextUtils.isEmpty(task.getFilename())) {
-                    tv_process.setText(task.getFilename() + "   文件下载中...");
-                } else {
-                    tv_process.setText("文件下载中...");
-                }
+                L.test("progress" + "     sofar:" + soFarBytes + "        totol:" + totalBytes);
+                tv_process.setText("素材下载中...");
+
             }
 
             @Override
             protected void blockComplete(BaseDownloadTask task) {
                 super.blockComplete(task);
+                L.test("blockComplete....");
             }
 
             @Override
             protected void completed(BaseDownloadTask task) {
                 super.completed(task);
                 tv_process.setText("");
+                L.test("completed....");
             }
 
             @Override
             protected void paused(BaseDownloadTask task, int soFarBytes, int totalBytes) {
                 super.paused(task, soFarBytes, totalBytes);
+                L.test("paused....");
             }
 
             @Override
             protected void error(BaseDownloadTask task, Throwable e) {
                 super.error(task, e);
+                L.d("error....");
                 tv_process.setText("");
             }
 
             @Override
             protected void warn(BaseDownloadTask task) {
                 super.warn(task);
+                L.test("warn....");
+                FileDownloader.getImpl().clear(task.getId(), task.getTargetFilePath());
             }
         });
     }
@@ -650,7 +650,6 @@ public class MainActivity extends BaseActivity implements MediaPlayer.OnPrepared
         mainPresenter = new MainPresenter(this);
         tv_tips = findViewById(R.id.tv_tips);
         tv_process = findViewById(R.id.tv_process);
-        tv_downPlan = findViewById(R.id.tv_downPlan);
         tv_version = findViewById(R.id.tv_version);
         tv_cupchip = findViewById(R.id.tv_cupchip);
 

@@ -132,7 +132,7 @@ public abstract class BaseActivity extends AppCompatActivity {
             @Override
             public void run() {
                 count = count + 100;
-                L.d("nextTime:" + nextTime + "   count:" + count);
+//                L.d("nextTime:" + nextTime + "   count:" + count);
                 if (count >= nextTime) {
                     EventBusHelper.sendEvent(BusEvent.getEvent(EventBusId.nextTime));
                     count = 0;
