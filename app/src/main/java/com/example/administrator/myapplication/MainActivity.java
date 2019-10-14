@@ -106,11 +106,6 @@ public class MainActivity extends BaseActivity implements MediaPlayer.OnPrepared
 
     private void play(ADModel adModel) {
         stopPlayer();
-//        if(StorageUtil.getInternalStorageAvailableSpace()<1600){
-//            if(planInfo.getAdModelList()!=null&&planInfo.getAdModelList().size()>0){
-//                new freeDiskSpaceTask().execute(planInfo.getAdModelList());
-//            }
-//        }
         if (adModel == null) {
             return;
         }
@@ -447,7 +442,7 @@ public class MainActivity extends BaseActivity implements MediaPlayer.OnPrepared
 
     private void startDownload(final String url) {
         if (StorageUtil.getInternalStorageAvailableSpace() > 0) {
-
+            new freeDiskSpaceTask().execute(planInfo.getAdModelList());
         }
         if (TextUtils.isEmpty(url)) {
             return;

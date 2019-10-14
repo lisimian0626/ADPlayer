@@ -1,10 +1,10 @@
 package com.example.administrator.myapplication.base;
 
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.annotation.LayoutRes;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
+import android.text.TextUtils;
 import android.view.View;
 import android.view.WindowManager;
 
@@ -199,22 +199,32 @@ public abstract class BaseActivity extends AppCompatActivity {
 //    }
 
 
-
-
-     public void freeDiskSpace(List<ADModel> adModelList) {
+    public void freeDiskSpace(List<ADModel> adModelList) {
+        boolean need_delete=true;
         File file = new File(TConst.getApkDir());
         File[] files = file.listFiles();
-        if (files != null && files.length > 0 && adModelList != null && adModelList.size() > 0) {
-            for (int i = 0; i < files.length; i++) {
-                for (int j = 0; j < adModelList.size(); j++) {
-                    if (files[i].equals(adModelList.get(j))) {
-                        break;
-                    } else {
+        if (files != null && files.length > 0) {
+            if (adModelList != null && adModelList.size() > 0) {
+                for (int i = 0; i < files.length; i++) {
+                    for (int j = 0; j < adModelList.size(); j++) {
+                        if (files[i].getName().equals(TConst.getFileNameByUrl(TextUtils.isEmpty(adModelList.get(j).getVideo_url())?adModelList.get(j).getImage_url():adModelList.get(j).getVideo_url()))) {
+                            need_delete=false;
+                            break;
+                        }
+                    }
+                    if(need_delete){
                         files[i].delete();
                         L.d(Tag, "执行删除路径:" + files[i].getAbsolutePath());
                     }
+                    need_delete=true;
+                }
+            } else {
+                for (int i = 0; i < files.length; i++) {
+                    files[i].delete();
+                    L.d(Tag, "执行删除路径:" + files[i].getAbsolutePath());
                 }
             }
+
         }
     }
 }
