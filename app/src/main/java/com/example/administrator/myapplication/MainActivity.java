@@ -10,7 +10,6 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.support.annotation.Nullable;
 import android.text.TextUtils;
-import android.util.Log;
 import android.view.KeyEvent;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
@@ -43,6 +42,7 @@ import com.example.administrator.myapplication.model.VersionResult;
 import com.example.administrator.myapplication.net.download.DownloadQueueHelper;
 import com.example.administrator.myapplication.setting.SettingDialog;
 import com.example.administrator.myapplication.upgrade.dialog.DlgProgress;
+import com.example.administrator.myapplication.utils.AssetsUtils;
 import com.example.administrator.myapplication.utils.DataUtils;
 import com.example.administrator.myapplication.utils.DeviceUtil;
 import com.example.administrator.myapplication.utils.L;
@@ -90,7 +90,6 @@ public class MainActivity extends BaseActivity implements MediaPlayer.OnPrepared
     private long mExitTime = 0;
     private static final int MAX_EXIT_INTERVAL = 2000;
     private SettingDialog settingDialog;
-    private byte[] temp;
     private List<ADModel> adModelList;
     private ADModel cur_Ad;
     private MainPresenter mainPresenter;
@@ -99,10 +98,10 @@ public class MainActivity extends BaseActivity implements MediaPlayer.OnPrepared
     private DlgProgress dlgProgress;
     private SmdtManager smdt;
     private RequestOptions options;
-    private int total = 0;
     private PlanInfo planInfo;
     private String filePaths = "";
     private Map<String, Integer> mediaMap = new HashMap<>();
+
 
     private void play(ADModel adModel) {
         stopPlayer();
@@ -111,7 +110,7 @@ public class MainActivity extends BaseActivity implements MediaPlayer.OnPrepared
         }
 
         cur_Ad = adModel;
-        tv_tips.setText("当前播放计划：" + cur_planID + "    素材分组号" + adModel.getID() + "    模板" + adModel.getPlay_type());
+        tv_tips.setText("当前播放计划：" + cur_planID + "    素材:" + TConst.getFileNameByUrl(adModel.getImage_url()) != null ? TConst.getFileNameByUrl(adModel.getImage_url()) : "" + "|" + TConst.getFileNameByUrl(adModel.getVideo_url()) != null ? TConst.getFileNameByUrl(adModel.getVideo_url()) : "");
         cameraView.setVisibility(adModel.getPlay_type() == 1 ? View.VISIBLE : View.GONE);
         if (mediaPlayer == null) {
             CreateMediaPlayer();
@@ -172,19 +171,19 @@ public class MainActivity extends BaseActivity implements MediaPlayer.OnPrepared
         } else {
             File image_file = TConst.getFileByUrl(adModel.getImage_url());
             if (image_file == null) {
-                iv_pic.setVisibility(View.GONE);
+                iv_pic.setImageResource(AssetsUtils.getDefaultRes());
                 if (adModel.getImage_url() != null) {
                     L.test("download:" + adModel.getImage_url());
                     startDownload(adModel.getImage_url());
                 }
             } else {
                 if (image_file.exists()) {
-                    iv_pic.setVisibility(View.VISIBLE);
                     if (options == null) {
                         options = initOption();
                     }
-                    Glide.with(this).load(image_file).apply(options).into(iv_pic);
+                    Glide.with(this).load(image_file).into(iv_pic);
                 } else {
+                    iv_pic.setImageResource(AssetsUtils.getDefaultRes());
                     if (adModel.getImage_url() == null)
                         return;
                     startDownload(adModel.getImage_url());
@@ -297,20 +296,24 @@ public class MainActivity extends BaseActivity implements MediaPlayer.OnPrepared
                 heartBeatJson.setMac(DeviceUtil.getCupChipID());
                 heartBeatJson.setVersionCode(String.valueOf(PackageUtil.getVersionCode(MainActivity.this)));
 //                heartBeatJson.setMac("e558779714542319");
-//                String planjson = PreferenceUtil.getString(MainActivity.this, "planInfo", "");
-//                if (!TextUtils.isEmpty(planjson)) {
-//                    Gson gson = new Gson();
-//                    planInfo = gson.fromJson(planjson, PlanInfo.class);
-//                    for (ADModel adModel : planInfo.getAdModelList()) {
-//                        File media_file = TConst.getFileByUrl(adModel.getVideo_url());
-//                        if (media_file != null && media_file.exists() && !filePaths.contains(adModel.getVideo_url())) {
-//                            filePaths += adModel.getVideo_url() + ",";
-//                        }
-//                    }
-//                }
-//                if (filePaths.length() > 1) {
-//                    heartBeatJson.setPlayFiles(filePaths.substring(0, filePaths.length() - 1));
-//                }
+                String planjson = PreferenceUtil.getString(MainActivity.this, "planInfo", "");
+                if (!TextUtils.isEmpty(planjson)) {
+                    Gson gson = new Gson();
+                    planInfo = gson.fromJson(planjson, PlanInfo.class);
+                    for (ADModel adModel : planInfo.getAdModelList()) {
+                        File media_file = TConst.getFileByUrl(adModel.getVideo_url());
+                        if (media_file != null && media_file.exists() && !filePaths.contains(media_file.getName())) {
+                            filePaths += media_file.getName() + ",";
+                        }
+                        File pic_file = TConst.getFileByUrl(adModel.getImage_url());
+                        if (media_file != null && media_file.exists() && !filePaths.contains(pic_file.getName())) {
+                            filePaths += pic_file.getName() + ",";
+                        }
+                    }
+                }
+                if (filePaths.length() > 1) {
+                    heartBeatJson.setPlayFiles(filePaths.substring(0, filePaths.length() - 1));
+                }
                 L.test("heartBeatJson:" + heartBeatJson.toString());
                 mainPresenter.fetchHeartbeat(heartBeatJson.toString());
 
@@ -455,53 +458,53 @@ public class MainActivity extends BaseActivity implements MediaPlayer.OnPrepared
                 .setPath(TConst.getApkDir() + TConst.getFileNameByUrl(url))
                 .setCallbackProgressTimes(300)
                 .setMinIntervalUpdateSpeed(400).setListener(new FileDownloadSampleListener() {
-            @Override
-            protected void pending(BaseDownloadTask task, int soFarBytes, int totalBytes) {
-                super.pending(task, soFarBytes, totalBytes);
-                L.test("pending....");
-            }
+                    @Override
+                    protected void pending(BaseDownloadTask task, int soFarBytes, int totalBytes) {
+                        super.pending(task, soFarBytes, totalBytes);
+                        L.test("pending....");
+                    }
 
-            @Override
-            protected void progress(BaseDownloadTask task, int soFarBytes, int totalBytes) {
-                super.progress(task, soFarBytes, totalBytes);
-                L.test("progress" + "     sofar:" + soFarBytes + "        totol:" + totalBytes);
-                tv_process.setText("素材下载中...");
+                    @Override
+                    protected void progress(BaseDownloadTask task, int soFarBytes, int totalBytes) {
+                        super.progress(task, soFarBytes, totalBytes);
+                        L.test("progress" + "     sofar:" + soFarBytes + "        totol:" + totalBytes);
+                        tv_process.setText("素材下载中...");
 
-            }
+                    }
 
-            @Override
-            protected void blockComplete(BaseDownloadTask task) {
-                super.blockComplete(task);
-                L.test("blockComplete....");
-            }
+                    @Override
+                    protected void blockComplete(BaseDownloadTask task) {
+                        super.blockComplete(task);
+                        L.test("blockComplete....");
+                    }
 
-            @Override
-            protected void completed(BaseDownloadTask task) {
-                super.completed(task);
-                tv_process.setText("");
-                L.test("completed....");
-            }
+                    @Override
+                    protected void completed(BaseDownloadTask task) {
+                        super.completed(task);
+                        tv_process.setText("");
+                        L.test("completed....");
+                    }
 
-            @Override
-            protected void paused(BaseDownloadTask task, int soFarBytes, int totalBytes) {
-                super.paused(task, soFarBytes, totalBytes);
-                L.test("paused....");
-            }
+                    @Override
+                    protected void paused(BaseDownloadTask task, int soFarBytes, int totalBytes) {
+                        super.paused(task, soFarBytes, totalBytes);
+                        L.test("paused....");
+                    }
 
-            @Override
-            protected void error(BaseDownloadTask task, Throwable e) {
-                super.error(task, e);
-                L.d("error....");
-                tv_process.setText("");
-            }
+                    @Override
+                    protected void error(BaseDownloadTask task, Throwable e) {
+                        super.error(task, e);
+                        L.d("error....");
+                        tv_process.setText("");
+                    }
 
-            @Override
-            protected void warn(BaseDownloadTask task) {
-                super.warn(task);
-                L.test("warn....");
-                FileDownloader.getImpl().clear(task.getId(), task.getTargetFilePath());
-            }
-        });
+                    @Override
+                    protected void warn(BaseDownloadTask task) {
+                        super.warn(task);
+                        L.test("warn....");
+                        FileDownloader.getImpl().clear(task.getId(), task.getTargetFilePath());
+                    }
+                });
     }
 
     private PlanInfo data2PlanInfo(List<PlanListInfo> planListInfos) {
@@ -684,8 +687,6 @@ public class MainActivity extends BaseActivity implements MediaPlayer.OnPrepared
         cameraView.setPreviewCallback(new CameraView.PreviewCallback() {
             @Override
             public void onGetYuvFrame(byte[] data) {
-                temp = data;
-                Log.e("lin", "===lin===>  onGetYuvFrame");
             }
         });
     }

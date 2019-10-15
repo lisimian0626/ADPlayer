@@ -1,15 +1,18 @@
 package com.example.administrator.myapplication.utils;
 
 import android.content.Context;
-import android.content.res.AssetFileDescriptor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+
+import com.example.administrator.myapplication.R;
 
 import java.io.IOException;
 import java.io.InputStream;
 
 public class AssetsUtils {
-    public static Bitmap readBitmap(Context context,String fileName){
+    private static int[] resId = {R.drawable.guangzhoutajiu, R.drawable.haitian, R.drawable.zhengmian};
+
+    public static Bitmap readBitmap(Context context, String fileName) {
         Bitmap bitmap;
         InputStream is = null;
         try {
@@ -19,6 +22,10 @@ public class AssetsUtils {
         }
         bitmap = BitmapFactory.decodeStream(is);
         return bitmap;
+    }
+
+    public static int getDefaultRes() {
+        return resId[DeviceUtil.getNum(3)];
     }
 
 }
