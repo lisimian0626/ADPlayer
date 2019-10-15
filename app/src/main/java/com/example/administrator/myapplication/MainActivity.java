@@ -110,7 +110,7 @@ public class MainActivity extends BaseActivity implements MediaPlayer.OnPrepared
         }
 
         cur_Ad = adModel;
-        tv_tips.setText("当前播放计划：" + cur_planID + "    素材:" + TConst.getFileNameByUrl(adModel.getImage_url()) != null ? TConst.getFileNameByUrl(adModel.getImage_url()) : "" + "|" + TConst.getFileNameByUrl(adModel.getVideo_url()) != null ? TConst.getFileNameByUrl(adModel.getVideo_url()) : "");
+        tv_tips.setText("当前播放计划：" + cur_planID + "    素材:" + TConst.getFileNameByUrl(adModel.getVideo_url()!=null?adModel.getVideo_url():adModel.getImage_url()));
         cameraView.setVisibility(adModel.getPlay_type() == 1 ? View.VISIBLE : View.GONE);
         if (mediaPlayer == null) {
             CreateMediaPlayer();
@@ -118,12 +118,41 @@ public class MainActivity extends BaseActivity implements MediaPlayer.OnPrepared
         if (!isSurfaceCreated) {
             CreateSurfaceView();
         }
+        if (TextUtils.isEmpty(adModel.getImage_url())) {
+            iv_pic.setVisibility(View.GONE);
+        } else {
+            iv_pic.setVisibility(View.VISIBLE);
+            File image_file = TConst.getFileByUrl(adModel.getImage_url());
+            if (image_file == null) {
+                iv_pic.setImageResource(AssetsUtils.getDefaultRes());
+                if (adModel.getImage_url() != null) {
+                    L.test("download:" + adModel.getImage_url());
+                    startDownload(adModel.getImage_url());
+                }
+            } else {
+                if (image_file.exists()) {
+                    if (options == null) {
+                        options = initOption();
+                    }
+                    Glide.with(this).load(image_file).apply(options).into(iv_pic);
+                } else {
+                    iv_pic.setImageResource(AssetsUtils.getDefaultRes());
+                    if (adModel.getImage_url() == null)
+                        return;
+                    startDownload(adModel.getImage_url());
+                }
+            }
+        }
+
         if (TextUtils.isEmpty(adModel.getVideo_url())) {
             main_surf1.setVisibility(View.GONE);
         } else {
+
             File media_file = TConst.getFileByUrl(adModel.getVideo_url());
             if (media_file == null) {
                 main_surf1.setVisibility(View.GONE);
+                iv_pic.setVisibility(View.VISIBLE);
+                iv_pic.setImageResource(AssetsUtils.getDefaultRes());
                 if (adModel.getVideo_url() != null) {
                     L.test("download:" + adModel.getVideo_url());
                     startDownload(adModel.getVideo_url());
@@ -159,6 +188,9 @@ public class MainActivity extends BaseActivity implements MediaPlayer.OnPrepared
                         }
                     }
                 } else {
+                    main_surf1.setVisibility(View.GONE);
+                    iv_pic.setVisibility(View.VISIBLE);
+                    iv_pic.setImageResource(AssetsUtils.getDefaultRes());
                     if (adModel.getVideo_url() != null) {
                         L.test("download:" + adModel.getVideo_url());
                         startDownload(adModel.getVideo_url());
@@ -166,30 +198,7 @@ public class MainActivity extends BaseActivity implements MediaPlayer.OnPrepared
                 }
             }
         }
-        if (TextUtils.isEmpty(adModel.getImage_url())) {
-            iv_pic.setVisibility(View.GONE);
-        } else {
-            File image_file = TConst.getFileByUrl(adModel.getImage_url());
-            if (image_file == null) {
-                iv_pic.setImageResource(AssetsUtils.getDefaultRes());
-                if (adModel.getImage_url() != null) {
-                    L.test("download:" + adModel.getImage_url());
-                    startDownload(adModel.getImage_url());
-                }
-            } else {
-                if (image_file.exists()) {
-                    if (options == null) {
-                        options = initOption();
-                    }
-                    Glide.with(this).load(image_file).into(iv_pic);
-                } else {
-                    iv_pic.setImageResource(AssetsUtils.getDefaultRes());
-                    if (adModel.getImage_url() == null)
-                        return;
-                    startDownload(adModel.getImage_url());
-                }
-            }
-        }
+
         cur_ADId = adModel.getID();
         nextTime = adModel.getDuration();
     }
@@ -306,7 +315,7 @@ public class MainActivity extends BaseActivity implements MediaPlayer.OnPrepared
                             filePaths += media_file.getName() + ",";
                         }
                         File pic_file = TConst.getFileByUrl(adModel.getImage_url());
-                        if (media_file != null && media_file.exists() && !filePaths.contains(pic_file.getName())) {
+                        if (pic_file != null && pic_file.exists() && !filePaths.contains(pic_file.getName())) {
                             filePaths += pic_file.getName() + ",";
                         }
                     }
@@ -390,6 +399,9 @@ public class MainActivity extends BaseActivity implements MediaPlayer.OnPrepared
     }
 
     private void startDownload(final List<PlanListInfo> planListInfos) {
+        if (StorageUtil.getInternalStorageAvailableSpace() <200) {
+            new freeDiskSpaceTask().execute(planInfo.getAdModelList());
+        }
         isDownLoading = true;
         List<BaseDownloadTask> mTaskList = new ArrayList<>();
         for (PlanListInfo info : planListInfos) {
@@ -444,7 +456,7 @@ public class MainActivity extends BaseActivity implements MediaPlayer.OnPrepared
     }
 
     private void startDownload(final String url) {
-        if (StorageUtil.getInternalStorageAvailableSpace() > 0) {
+        if (StorageUtil.getInternalStorageAvailableSpace() <200) {
             new freeDiskSpaceTask().execute(planInfo.getAdModelList());
         }
         if (TextUtils.isEmpty(url)) {
@@ -495,6 +507,7 @@ public class MainActivity extends BaseActivity implements MediaPlayer.OnPrepared
                     protected void error(BaseDownloadTask task, Throwable e) {
                         super.error(task, e);
                         L.d("error....");
+                        FileDownloader.getImpl().clear(task.getId(), task.getTargetFilePath());
                         tv_process.setText("");
                     }
 
@@ -502,6 +515,7 @@ public class MainActivity extends BaseActivity implements MediaPlayer.OnPrepared
                     protected void warn(BaseDownloadTask task) {
                         super.warn(task);
                         L.test("warn....");
+                        tv_process.setText("");
                         FileDownloader.getImpl().clear(task.getId(), task.getTargetFilePath());
                     }
                 });
