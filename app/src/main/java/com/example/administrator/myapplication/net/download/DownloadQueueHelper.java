@@ -57,6 +57,9 @@ public class DownloadQueueHelper {
                     BaseDownloadTask task = getTask(message);
                     mListener.onDownloadTaskError(task, task != null ? mThrowable.get(task.getId()) : new RuntimeException("文件下载失败"));
                     break;
+                case CTRL_COMPLETE:
+                    mListener.onDownloadComplete(getTask(message));
+                    break;
             }
             return true;
         }
