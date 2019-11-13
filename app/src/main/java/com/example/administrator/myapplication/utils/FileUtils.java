@@ -10,9 +10,12 @@ import android.text.TextUtils;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.math.BigInteger;
+import java.security.MessageDigest;
 import java.util.List;
 
 /**
@@ -106,13 +109,44 @@ public class FileUtils {
             return null;
         }
     }
-    public static String ListToString(List<String> stringList){
-        String str="";
-        if(stringList!=null&&stringList.size()>0){
-            for(String s:stringList){
-                str+=s+",";
+
+    public static String ListToString(List<String> stringList) {
+        String str = "";
+        if (stringList != null && stringList.size() > 0) {
+            for (String s : stringList) {
+                str += s + ",";
             }
         }
-        return TextUtils.isEmpty(str)?str:str.substring(0,str.length()-1);
+        return TextUtils.isEmpty(str) ? str : str.substring(0, str.length() - 1);
+    }
+
+    /**
+     * 获取单个文件的MD5值！
+     *
+     * @param file
+     * @return
+     */
+
+    public static String getFileMD5(File file) {
+        if (!file.isFile()) {
+            return null;
+        }
+        MessageDigest digest = null;
+        FileInputStream in = null;
+        byte buffer[] = new byte[1024];
+        int len;
+        try {
+            digest = MessageDigest.getInstance("MD5");
+            in = new FileInputStream(file);
+            while ((len = in.read(buffer, 0, 1024)) != -1) {
+                digest.update(buffer, 0, len);
+            }
+            in.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        }
+        BigInteger bigInt = new BigInteger(1, digest.digest());
+        return bigInt.toString(16);
     }
 }

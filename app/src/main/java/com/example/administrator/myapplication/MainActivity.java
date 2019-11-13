@@ -45,6 +45,7 @@ import com.example.administrator.myapplication.upgrade.dialog.DlgProgress;
 import com.example.administrator.myapplication.utils.AssetsUtils;
 import com.example.administrator.myapplication.utils.DataUtils;
 import com.example.administrator.myapplication.utils.DeviceUtil;
+import com.example.administrator.myapplication.utils.FileUtils;
 import com.example.administrator.myapplication.utils.L;
 import com.example.administrator.myapplication.utils.PackageUtil;
 import com.example.administrator.myapplication.utils.PreferenceUtil;
@@ -131,6 +132,7 @@ public class MainActivity extends BaseActivity implements MediaPlayer.OnPrepared
                 }
             } else {
                 if (image_file.exists()) {
+                    L.test(FileUtils.getFileMD5(image_file));
                     if (options == null) {
                         options = initOption();
                     }
@@ -147,7 +149,6 @@ public class MainActivity extends BaseActivity implements MediaPlayer.OnPrepared
         if (TextUtils.isEmpty(adModel.getVideo_url())) {
             main_surf1.setVisibility(View.GONE);
         } else {
-
             File media_file = TConst.getFileByUrl(adModel.getVideo_url());
             if (media_file == null) {
                 main_surf1.setVisibility(View.GONE);
@@ -159,6 +160,7 @@ public class MainActivity extends BaseActivity implements MediaPlayer.OnPrepared
                 }
             } else {
                 if (media_file.exists()) {
+                    L.test(FileUtils.getFileMD5(media_file));
                     main_surf1.setVisibility(View.VISIBLE);
                     try {
                         mediaPlayer.reset();
