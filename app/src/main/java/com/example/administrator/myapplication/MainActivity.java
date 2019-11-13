@@ -165,7 +165,12 @@ public class MainActivity extends BaseActivity implements MediaPlayer.OnPrepared
                     try {
                         mediaPlayer.reset();
                         mediaPlayer.setDataSource(media_file.getAbsolutePath());
-                        mediaPlayer.setDisplay(main_surf1.getHolder());
+                        if(main_surf1!=null&&main_surf1.getHolder()!=null){
+                            mediaPlayer.setDisplay(main_surf1.getHolder());
+                        }else{
+                            main_surf1.setVisibility(View.GONE);
+                            return;
+                        }
                         mediaPlayer.prepareAsync();
                         for (String key : mediaMap.keySet()) {
                             if (key.equalsIgnoreCase(media_file.getAbsolutePath())) {
@@ -232,7 +237,7 @@ public class MainActivity extends BaseActivity implements MediaPlayer.OnPrepared
 
     private void stopPlayer() {
         isPlaying = false;
-        if (mediaPlayer != null && mediaPlayer.isPlaying()) {
+        if (mediaPlayer != null) {
             mediaPlayer.stop();
             mediaPlayer.release();
             mediaPlayer = null;
