@@ -147,6 +147,36 @@ public class FileUtils {
             return null;
         }
         BigInteger bigInt = new BigInteger(1, digest.digest());
-        return bigInt.toString(16);
+        return bigInt.toString(16).length()<32?"0"+bigInt.toString(16):bigInt.toString(16);
+    }
+
+    /**
+     * MD5加密，前面encrypt方法可能会出现加密缺少前置0的情况
+     */
+    public static String getMd5(String plainText) {
+        try {
+            MessageDigest md = MessageDigest.getInstance("MD5");
+            md.update(plainText.getBytes());
+            byte b[] = md.digest();
+
+            int i;
+
+            StringBuffer buf = new StringBuffer("");
+            for (int offset = 0; offset < b.length; offset++) {
+                i = b[offset];
+                if (i < 0)
+                    i += 256;
+                if (i < 16)
+                    buf.append("0");
+                buf.append(Integer.toHexString(i));
+            }
+            //32位加密
+            return buf.toString();
+            // 16位的加密
+            //return buf.toString().substring(8, 24);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        }
     }
 }

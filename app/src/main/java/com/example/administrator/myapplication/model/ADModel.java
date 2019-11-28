@@ -8,6 +8,8 @@ public class ADModel {
     private String  image_url;
     private String video_url;
     private int duration;
+    private String image_MD5;
+    private String media_MD5;
     public ADModel(){
     }
     public ADModel(String ID, int play_type, String image_url, String uri,int duration) {
@@ -57,5 +59,21 @@ public class ADModel {
 
     public void setDuration(int duration) {
         this.duration = duration;
+    }
+
+    public String getImage_MD5() {
+        return image_MD5;
+    }
+
+    public void setImage_MD5(String image_MD5) {
+        this.image_MD5 = image_MD5;
+    }
+
+    public String getMedia_MD5() {
+        return media_MD5;
+    }
+
+    public void setMedia_MD5(String media_MD5) {
+        this.media_MD5 = media_MD5;
     }
 }

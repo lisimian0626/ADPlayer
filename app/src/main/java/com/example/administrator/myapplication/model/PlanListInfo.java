@@ -16,7 +16,7 @@ public class PlanListInfo {
      * GroupFlag : 1
      * URL : http://111.230.222.252:8982/file/pic01.png
      */
-
+    private String MD5;
     private int PlaylistID;
     private int PlayFileID;
     private int PlayOrder;
@@ -32,6 +32,14 @@ public class PlanListInfo {
         }.getType();
 
         return new Gson().fromJson(str, listType);
+    }
+
+    public String getMD5() {
+        return MD5;
+    }
+
+    public void setMD5(String MD5) {
+        this.MD5 = MD5;
     }
 
     public int getPlaylistID() {

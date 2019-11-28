@@ -101,7 +101,6 @@ public class MainActivity extends BaseActivity implements MediaPlayer.OnPrepared
     private RequestOptions options;
     private PlanInfo planInfo;
     private String filePaths = "";
-    private Map<String, Integer> mediaMap = new HashMap<>();
     private int downcount;
 
     private void play(ADModel adModel) {
@@ -132,11 +131,16 @@ public class MainActivity extends BaseActivity implements MediaPlayer.OnPrepared
                 }
             } else {
                 if (image_file.exists()) {
-                    L.test(FileUtils.getFileMD5(image_file));
-                    if (options == null) {
-                        options = initOption();
+                    L.test("cur_MD5:"+FileUtils.getFileMD5(image_file)+"       modelMD5:"+adModel.getImage_MD5());
+                    if(adModel.getImage_MD5().equalsIgnoreCase(FileUtils.getFileMD5(image_file))){
+                        if (options == null) {
+                            options = initOption();
+                        }
+                        Glide.with(this).load(image_file).apply(options).into(iv_pic);
+                    }else{
+                        L.test("MD5不相同，删除文件:"+image_file.getAbsolutePath());
+                        image_file.delete();
                     }
-                    Glide.with(this).load(image_file).apply(options).into(iv_pic);
                 } else {
                     iv_pic.setImageResource(AssetsUtils.getDefaultRes());
                     if (adModel.getImage_url() == null)
@@ -160,39 +164,28 @@ public class MainActivity extends BaseActivity implements MediaPlayer.OnPrepared
                 }
             } else {
                 if (media_file.exists()) {
-                    L.test(FileUtils.getFileMD5(media_file));
-                    main_surf1.setVisibility(View.VISIBLE);
-                    try {
-                        mediaPlayer.reset();
-                        mediaPlayer.setDataSource(media_file.getAbsolutePath());
-                        if(main_surf1!=null&&main_surf1.getHolder()!=null){
-                            mediaPlayer.setDisplay(main_surf1.getHolder());
-                        }else{
+                    L.test("cur_MD5:"+FileUtils.getFileMD5(media_file)+"       modelMD5:"+adModel.getMedia_MD5());
+                    if(adModel.getMedia_MD5().equalsIgnoreCase(FileUtils.getFileMD5(media_file))){
+                        main_surf1.setVisibility(View.VISIBLE);
+                        try {
+                            mediaPlayer.reset();
+                            mediaPlayer.setDataSource(media_file.getAbsolutePath());
+                            if(main_surf1!=null&&main_surf1.getHolder()!=null){
+                                mediaPlayer.setDisplay(main_surf1.getHolder());
+                            }else{
+                                main_surf1.setVisibility(View.GONE);
+                                iv_pic.setVisibility(View.VISIBLE);
+                                return;
+                            }
+                            mediaPlayer.prepareAsync();
+                        } catch (IOException e) {
+                            e.printStackTrace();
                             main_surf1.setVisibility(View.GONE);
-                            return;
+                            iv_pic.setVisibility(View.VISIBLE);
                         }
-                        mediaPlayer.prepareAsync();
-                        for (String key : mediaMap.keySet()) {
-                            if (key.equalsIgnoreCase(media_file.getAbsolutePath())) {
-                                mediaMap.put(key, 0);
-                            }
-                        }
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                        for (Map.Entry<String, Integer> entry : mediaMap.entrySet()) {
-                            if (entry.getKey().equalsIgnoreCase(media_file.getAbsolutePath())) {
-                                if (entry.getValue() >= 2) {
-                                    media_file.delete();
-                                    L.e(TAG, "播放错误 删除文件:" + media_file.getAbsolutePath());
-                                } else {
-                                    mediaMap.put(entry.getKey(), entry.getValue() + 1);
-                                    L.e(TAG, "播放错误:" + media_file.getAbsolutePath() + " 次数:" + entry.getValue());
-                                }
-                            } else {
-                                mediaMap.put(entry.getKey(), 0);
-                                L.e(TAG, "播放错误:" + media_file.getAbsolutePath());
-                            }
-                        }
+                    }else{
+                        L.test("MD5不相同，删除文件:"+media_file.getAbsolutePath());
+                        media_file.delete();
                     }
                 } else {
                     main_surf1.setVisibility(View.GONE);
@@ -581,6 +574,7 @@ public class MainActivity extends BaseActivity implements MediaPlayer.OnPrepared
                     adModel.setID(String.valueOf(data.getGroupFlag()));
                     adModel.setImage_url(data.getURL());
                     adModel.setPlay_type(data.getPlaylistSubType());
+                    adModel.setImage_MD5(data.getMD5());
                     if (data.getDuration() > 5 && data.getDuration() < 20) {
                         adModel.setDuration(data.getDuration() * 1000);
                     } else {
@@ -591,6 +585,7 @@ public class MainActivity extends BaseActivity implements MediaPlayer.OnPrepared
                     adModel.setVideo_url(data.getURL());
                     adModel.setPlay_type(data.getPlaylistSubType());
                     adModel.setDuration(TConst.normal_duration);
+                    adModel.setMedia_MD5(data.getMD5());
                 }
             }
             adModelList.add(adModel);
@@ -903,7 +898,7 @@ public class MainActivity extends BaseActivity implements MediaPlayer.OnPrepared
                             if (lastTime < 500 || nextTime - lastTime < 500) {
                                 L.test("状态异常");
                             } else {
-                                if (current_play != i || Math.abs(count - lastTime) > 500) {
+                                if (current_play != i || Math.abs(count - lastTime) > 3000) {
                                     count = lastTime;
                                     L.test("同步图片");
                                     current_play = i;
@@ -922,7 +917,7 @@ public class MainActivity extends BaseActivity implements MediaPlayer.OnPrepared
                             if (lastTime < 500 || curduration < 500 || (adModelList.get(i).getDuration() - curduration < 500)) {
                                 L.test("状态异常");
                             } else {
-                                if (current_play != i || Math.abs(mediaPlayer.getCurrentPosition() - lastTime) > 500) {
+                                if (current_play != i || Math.abs(mediaPlayer.getCurrentPosition() - lastTime) > 5000) {
                                     curIndex = lastTime;
                                     L.test("同步视频");
                                     current_play = i;
