@@ -1,10 +1,8 @@
 package com.example.administrator.myapplication;
 
 import android.app.smdt.SmdtManager;
-import android.graphics.Color;
 import android.graphics.PixelFormat;
 import android.media.MediaPlayer;
-import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
@@ -40,6 +38,8 @@ import com.example.administrator.myapplication.model.PlanlistJson;
 import com.example.administrator.myapplication.model.VersionJson;
 import com.example.administrator.myapplication.model.VersionResult;
 import com.example.administrator.myapplication.net.download.DownloadQueueHelper;
+import com.example.administrator.myapplication.player.BaseMediaPlayer;
+import com.example.administrator.myapplication.player.OnBasePlayerListener;
 import com.example.administrator.myapplication.setting.SettingDialog;
 import com.example.administrator.myapplication.upgrade.dialog.DlgProgress;
 import com.example.administrator.myapplication.utils.AssetsUtils;
@@ -73,9 +73,9 @@ import java.util.Map;
 import okhttp3.ResponseBody;
 
 
-public class MainActivity extends BaseActivity implements MediaPlayer.OnPreparedListener, MediaPlayer.OnCompletionListener, MediaPlayer.OnErrorListener, MainConstract.MainView {
+public class MainActivity extends BaseActivity implements OnBasePlayerListener, MainConstract.MainView {
     private final String TAG = "MainActivity";
-    MediaPlayer mediaPlayer;
+    BaseMediaPlayer mediaPlayer;
     LinearLayout lin_mode1;
     ImageView iv_pic;
     SurfaceView main_surf1;
@@ -83,7 +83,7 @@ public class MainActivity extends BaseActivity implements MediaPlayer.OnPrepared
     //    private RelativeLayout layout_main;
     int current_play = 0;
     private String cur_ADId = "";
-    private TextView tv_version, tv_cupchip, tv_tips, tv_process,tv_downPlan;
+    private TextView tv_version, tv_cupchip, tv_tips, tv_process, tv_downPlan;
     private boolean isSurfaceCreated = false;        //surface是否已经创建好
     private int curIndex = 0;
     private boolean isPlaying = false;
@@ -115,9 +115,6 @@ public class MainActivity extends BaseActivity implements MediaPlayer.OnPrepared
         if (mediaPlayer == null) {
             CreateMediaPlayer();
         }
-        if (!isSurfaceCreated) {
-            CreateSurfaceView();
-        }
         if (TextUtils.isEmpty(adModel.getImage_url())) {
             iv_pic.setVisibility(View.GONE);
         } else {
@@ -131,14 +128,14 @@ public class MainActivity extends BaseActivity implements MediaPlayer.OnPrepared
                 }
             } else {
                 if (image_file.exists()) {
-                    L.test("cur_MD5:"+FileUtils.getFileMD5(image_file)+"       modelMD5:"+adModel.getImage_MD5());
-                    if(adModel.getImage_MD5().equalsIgnoreCase(FileUtils.getFileMD5(image_file))){
+                    L.test("cur_MD5:" + FileUtils.getFileMD5(image_file) + "       modelMD5:" + adModel.getImage_MD5());
+                    if (adModel.getImage_MD5().equalsIgnoreCase(FileUtils.getFileMD5(image_file))) {
                         if (options == null) {
                             options = initOption();
                         }
                         Glide.with(this).load(image_file).apply(options).into(iv_pic);
-                    }else{
-                        L.test("MD5不相同，删除文件:"+image_file.getAbsolutePath());
+                    } else {
+                        L.test("MD5不相同，删除文件:" + image_file.getAbsolutePath());
                         image_file.delete();
                     }
                 } else {
@@ -164,27 +161,12 @@ public class MainActivity extends BaseActivity implements MediaPlayer.OnPrepared
                 }
             } else {
                 if (media_file.exists()) {
-                    L.test("cur_MD5:"+FileUtils.getFileMD5(media_file)+"       modelMD5:"+adModel.getMedia_MD5());
-                    if(adModel.getMedia_MD5().equalsIgnoreCase(FileUtils.getFileMD5(media_file))){
+                    L.test("cur_MD5:" + FileUtils.getFileMD5(media_file) + "       modelMD5:" + adModel.getMedia_MD5());
+                    if (adModel.getMedia_MD5().equalsIgnoreCase(FileUtils.getFileMD5(media_file))) {
                         main_surf1.setVisibility(View.VISIBLE);
-                        try {
-                            mediaPlayer.reset();
-                            mediaPlayer.setDataSource(media_file.getAbsolutePath());
-                            if(main_surf1!=null&&main_surf1.getHolder()!=null){
-                                mediaPlayer.setDisplay(main_surf1.getHolder());
-                            }else{
-                                main_surf1.setVisibility(View.GONE);
-                                iv_pic.setVisibility(View.VISIBLE);
-                                return;
-                            }
-                            mediaPlayer.prepareAsync();
-                        } catch (IOException e) {
-                            e.printStackTrace();
-                            main_surf1.setVisibility(View.GONE);
-                            iv_pic.setVisibility(View.VISIBLE);
-                        }
-                    }else{
-                        L.test("MD5不相同，删除文件:"+media_file.getAbsolutePath());
+                        mediaPlayer.playMedia(media_file.getAbsolutePath());
+                    } else {
+                        L.test("MD5不相同，删除文件:" + media_file.getAbsolutePath());
                         media_file.delete();
                     }
                 } else {
@@ -213,10 +195,11 @@ public class MainActivity extends BaseActivity implements MediaPlayer.OnPrepared
     }
 
     private void CreateMediaPlayer() {
-        mediaPlayer = new MediaPlayer();
-        mediaPlayer.setOnCompletionListener(this);
-        mediaPlayer.setOnErrorListener(this);
-        mediaPlayer.setOnPreparedListener(this);
+        if (!isSurfaceCreated) {
+            CreateSurfaceView();
+        }
+        mediaPlayer = new BaseMediaPlayer(main_surf1);
+        mediaPlayer.setBasePlayerListener(this);
     }
 
     private void CreateSurfaceView() {
@@ -229,7 +212,6 @@ public class MainActivity extends BaseActivity implements MediaPlayer.OnPrepared
     }
 
     private void stopPlayer() {
-        isPlaying = false;
         if (mediaPlayer != null) {
             mediaPlayer.stop();
             mediaPlayer.release();
@@ -344,12 +326,6 @@ public class MainActivity extends BaseActivity implements MediaPlayer.OnPrepared
         }
     }
 
-    @Override
-    public void onCompletion(MediaPlayer mediaPlayer) {
-        L.d(TAG, "onCompletion");
-        isPlaying = false;
-    }
-
     /**
      * 页面从前台到后台会执行 onPause ->onStop 此时Surface会被销毁，
      * 再一次从后台 到前台时需要 重新创建Surface
@@ -422,8 +398,8 @@ public class MainActivity extends BaseActivity implements MediaPlayer.OnPrepared
             tv_tips.setVisibility(View.VISIBLE);
             EventBusHelper.sendDownComplite(data2PlanInfo(planListInfos).toString());
         } else {
-            downcount=mTaskList.size();
-            tv_downPlan.setText("待下载:"+downcount);
+            downcount = mTaskList.size();
+            tv_downPlan.setText("待下载:" + downcount);
             tv_tips.setVisibility(View.GONE);
             tv_downPlan.setVisibility(View.VISIBLE);
             tv_process.setVisibility(View.VISIBLE);
@@ -433,14 +409,14 @@ public class MainActivity extends BaseActivity implements MediaPlayer.OnPrepared
                 public void onDownloadComplete(BaseDownloadTask task) {
                     L.test("Complete");
                     tv_process.setText("");
-                    tv_downPlan.setText("待下载:"+downcount--);
+                    tv_downPlan.setText("待下载:" + downcount--);
                 }
 
                 @Override
                 public void onDownloadTaskError(BaseDownloadTask task, Throwable e) {
                     if (task != null && !TextUtils.isEmpty(task.getFilename())) {
-                        tv_process.setText(task.getFilename() +"     下载失败!");
-                    }else{
+                        tv_process.setText(task.getFilename() + "     下载失败!");
+                    } else {
                         tv_process.setText("下载失败!");
                     }
                     L.test("加载文件失败,请重新下载！");
@@ -450,7 +426,7 @@ public class MainActivity extends BaseActivity implements MediaPlayer.OnPrepared
                 public void onDownloadProgress(BaseDownloadTask task, int soFarBytes, int totalBytes) {
                     if (task != null && !TextUtils.isEmpty(task.getFilename())) {
                         tv_process.setText(task.getFilename() + "     下载中...");
-                    }else{
+                    } else {
                         tv_process.setText("下载中...");
                     }
                     L.test((soFarBytes / totalBytes) * 100 + "   " + "sofar:" + soFarBytes + "    total:" + totalBytes);
@@ -500,7 +476,7 @@ public class MainActivity extends BaseActivity implements MediaPlayer.OnPrepared
                         L.test("progress" + "     sofar:" + soFarBytes + "        totol:" + totalBytes);
                         if (task != null && !TextUtils.isEmpty(task.getFilename())) {
                             tv_process.setText(task.getFilename() + "     下载中...");
-                        }else{
+                        } else {
                             tv_process.setText("下载中...");
                         }
 
@@ -634,43 +610,6 @@ public class MainActivity extends BaseActivity implements MediaPlayer.OnPrepared
 //        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_RESET_TASK_IF_NEEDED);
     }
 
-    @Override
-    public boolean onError(MediaPlayer mediaPlayer, int i, int i1) {
-//        EventBusHelper.sendEvent(BusEvent.getEvent(EventBusId.nextTime));
-//        initPlayer();
-        return false;
-    }
-
-    @Override
-    public void onPrepared(MediaPlayer mp) {
-        mp.setOnInfoListener(new MediaPlayer.OnInfoListener() {
-            @Override
-            public boolean onInfo(MediaPlayer mp, int what, int extra) {
-                if (what == MediaPlayer.MEDIA_INFO_VIDEO_RENDERING_START)
-                    main_surf1.setBackgroundColor(Color.TRANSPARENT);
-                return true;
-            }
-        });
-        int cur_duration = adModelList.get(current_play).getDuration();
-        if (curIndex > 0) {
-            mediaPlayer.seekTo(curIndex);
-            count = curIndex;
-            L.test("onPrepared:" + "curIndex:" + curIndex + "   count:" + count);
-            curIndex = 0;
-        }
-        mediaPlayer.start();
-        if (cur_duration > 0 && cur_duration != mp.getDuration() && planInfo != null) {
-            adModelList.get(current_play).setDuration(mp.getDuration());
-            planInfo.setAdModelList(adModelList);
-            PreferenceUtil.setString(MainActivity.this, "planInfo", planInfo.toString());
-            L.test("changeduation:" + mp.getDuration());
-        }
-
-
-//        mp.getDuration();
-
-    }
-
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -694,7 +633,7 @@ public class MainActivity extends BaseActivity implements MediaPlayer.OnPrepared
         tv_process = findViewById(R.id.tv_process);
         tv_version = findViewById(R.id.tv_version);
         tv_cupchip = findViewById(R.id.tv_cupchip);
-        tv_downPlan=findViewById(R.id.tv_downPlan);
+        tv_downPlan = findViewById(R.id.tv_downPlan);
         lin_mode1 = findViewById(R.id.lin_mode);
         iv_pic = findViewById(R.id.iv_pic);
         main_surf1 = findViewById(R.id.main_surf);
@@ -1017,6 +956,39 @@ public class MainActivity extends BaseActivity implements MediaPlayer.OnPrepared
         }
     }
 
+    @Override
+    public void onPlayStart(MediaPlayer mp, String path) {
+        if (curIndex > 0) {
+            mediaPlayer.seekTo(curIndex);
+            count = curIndex;
+            L.test("onPrepared:" + "curIndex:" + curIndex + "   count:" + count);
+            curIndex = 0;
+        }
+        mediaPlayer.start();
+        int cur_duration = adModelList.get(current_play).getDuration();
+        if (cur_duration > 0 && cur_duration != mp.getDuration() && planInfo != null) {
+            adModelList.get(current_play).setDuration(mp.getDuration());
+            planInfo.setAdModelList(adModelList);
+            PreferenceUtil.setString(MainActivity.this, "planInfo", planInfo.toString());
+            L.test("changeduation:" + mp.getDuration());
+        }
+    }
+
+    @Override
+    public void onPlayProgress(String path, long duration, long current) {
+
+    }
+
+    @Override
+    public void onPlayCompletion(String path) {
+
+    }
+
+    @Override
+    public void onPlayError(String path, String error) {
+
+    }
+
 
     private class SurfaceCallback implements SurfaceHolder.Callback {
         public void surfaceChanged(SurfaceHolder holder, int format, int width, int height) {
@@ -1029,7 +1001,7 @@ public class MainActivity extends BaseActivity implements MediaPlayer.OnPrepared
          */
         public void surfaceCreated(SurfaceHolder holder) {
             isSurfaceCreated = true;
-            mediaPlayer.setDisplay(holder);
+            mediaPlayer.creatSuf(holder);
         }
 
         /**
@@ -1045,18 +1017,6 @@ public class MainActivity extends BaseActivity implements MediaPlayer.OnPrepared
         }
     }
 
-    private void open(Uri uri) throws IOException {
-//        File file = new File(uri.toString());
-//        if (file != null) {//存在本地文件
-//            L.d("open local file:" + file.getAbsolutePath());
-        mediaPlayer.setDataSource(MainActivity.this, uri);
-        mediaPlayer.setDisplay(main_surf1.getHolder());
-        mediaPlayer.prepare();
-        isPlaying = true;
-//        }else{
-//            L.d("文件不存在");
-//        }
-    }
 
     public void showSetting() {
         if ((System.currentTimeMillis() - mExitTime) > MAX_EXIT_INTERVAL) {
